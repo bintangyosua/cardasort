@@ -21,12 +21,11 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { FileUploader } from '@/components/file-uploader';
 import { MultiSelect } from '@/components/multi-select';
-import { ACCEPTED_IMAGE_TYPES, MAX_FILE_SIZE } from '@/constants/form';
-import { useState } from 'react';
 import { Entity } from '@/types/entity';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { useState } from 'react';
 
 export default function ArticlesForm({
   initialData,
@@ -39,11 +38,11 @@ export default function ArticlesForm({
   categories?: Array<{ id: number; name: string; label?: string | null }>;
   tags?: Array<{ id: number; name: string }>;
 }) {
-  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(
-    initialData?.imageUrl || null
-  );
-
   const router = useRouter();
+  const [imagePreview, setImagePreview] = useState<string>(
+    initialData?.imageUrl || ''
+  );
+  const [imageError, setImageError] = useState(false);
 
   const formSchema = z.object({
     name: z
@@ -58,77 +57,43 @@ export default function ArticlesForm({
       .number()
       .min(1, { message: 'Please select a category.' }),
     tags: z.array(z.coerce.number()).default([]),
-    imageUrl: z.string().optional(),
-    image: z
-      .any()
-      .refine(
-        (files) => {
-          if (
-            !initialData &&
-            (!files || files.length === 0) &&
-            !existingImageUrl
-          ) {
-            return false;
-          }
-          if (files && files.length > 0) {
-            return files.length === 1;
-          }
-          return true;
-        },
-        initialData ? 'Please select only one image.' : 'Image is required.'
-      )
-      .refine((files) => {
-        if (!files || files.length === 0) return true;
-        return files[0]?.size <= MAX_FILE_SIZE;
-      }, `Max file size is 5MB.`)
-      .refine((files) => {
-        if (!files || files.length === 0) return true;
-        return ACCEPTED_IMAGE_TYPES.includes(files[0]?.type);
-      }, '.jpg, .jpeg, .png and .webp files are accepted.')
+    imageUrl: z
+      .string()
+      .min(1, { message: 'Image URL is required.' })
+      .url({ message: 'Please enter a valid URL.' })
   });
-
-  const defaultValues = {
-    name: initialData?.name || '',
-    categoryId: initialData?.categoryId || 0,
-    tags: initialData?.tags?.map((tag) => tag.id) || [],
-    imageUrl: initialData?.imageUrl || '',
-    image: [] as File[]
-  };
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues
+    values: {
+      name: initialData?.name || '',
+      categoryId: initialData?.categoryId || 0,
+      tags: initialData?.tags?.map((tag) => tag.id) || [],
+      imageUrl: initialData?.imageUrl || ''
+    }
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const formData = new FormData();
-
-    formData.append('name', values.name);
-    formData.append('categoryId', String(values.categoryId));
-
-    if (values.tags && values.tags.length > 0) {
-      formData.append('tags', JSON.stringify(values.tags));
-    }
-
-    if (values.image && values.image.length > 0) {
-      formData.append('image', values.image[0]);
-    }
+    const data = {
+      name: values.name,
+      categoryId: values.categoryId,
+      imageUrl: values.imageUrl,
+      tags: values.tags
+    };
 
     try {
       if (initialData?.id) {
         // TODO: Implement update API
-        // await entitiesService.update(initialData.id, formData);
-        console.log('Update entity:', values);
+        // await entitiesService.update(initialData.id, data);
+        console.log('Update entity:', data);
       } else {
         // TODO: Implement create API
-        // await entitiesService.create(formData);
-        console.log('Create entity:', values);
+        // await entitiesService.create(data);
+        console.log('Create entity:', data);
       }
       router.push('/dashboard/articles');
     } catch (error) {
       console.error('Error saving entity:', error);
-    } finally {
-      form.reset();
     }
   }
 
@@ -144,22 +109,44 @@ export default function ArticlesForm({
           <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
             <FormField
               control={form.control}
-              name='image'
+              name='imageUrl'
               render={({ field }) => (
-                <div className='space-y-6'>
-                  <FormItem className='w-full'>
-                    <FormLabel>Image</FormLabel>
-                    <FormControl>
-                      <FileUploader
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        maxFiles={1}
-                        maxSize={5 * 1024 * 1024}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                </div>
+                <FormItem>
+                  <FormLabel>Image URL</FormLabel>
+                  {imagePreview && (
+                    <div className='mb-4 flex justify-center'>
+                      <div className='bg-muted relative aspect-square w-full max-w-md overflow-hidden rounded-md border'>
+                        {!imageError ? (
+                          <Image
+                            src={imagePreview}
+                            alt='Preview'
+                            fill
+                            className='object-cover'
+                            onError={() => setImageError(true)}
+                          />
+                        ) : (
+                          <div className='text-muted-foreground flex h-full items-center justify-center'>
+                            <p className='text-sm'>
+                              Failed to load image. Please check the URL.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  <FormControl>
+                    <Input
+                      placeholder='https://example.com/image.jpg'
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        setImagePreview(e.target.value);
+                        setImageError(false);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
             />
             <FormField
@@ -183,7 +170,7 @@ export default function ArticlesForm({
                   <FormLabel>Category</FormLabel>
                   <Select
                     onValueChange={(value) => field.onChange(Number(value))}
-                    value={String(field.value)}
+                    value={field.value > 0 ? String(field.value) : undefined}
                   >
                     <FormControl>
                       <SelectTrigger>

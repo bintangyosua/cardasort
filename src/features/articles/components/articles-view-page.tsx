@@ -3,6 +3,8 @@ import ArticlesForm from './articles-form';
 import { Article } from '@/types/entity';
 import { articlesService } from '@/lib/api/articles.service';
 import { EntitiesServerService } from '@/lib/api/articles.server.service';
+import { EntityCategoriesServerService } from '@/lib/api/articles-categories.server.service';
+import { prisma } from '@/lib/prisma';
 
 type TArticleViewPageProps = {
   articleId: string;
@@ -30,5 +32,23 @@ export default async function ArticlesViewPage({
     }
   }
 
-  return <ArticlesForm initialData={article} pageTitle={pageTitle} />;
+  // Fetch categories and tags
+  const categoriesResponse =
+    await EntityCategoriesServerService.getAdminCategories({});
+  const categories = categoriesResponse.success
+    ? (categoriesResponse.data as any[])
+    : [];
+
+  const tags = await prisma.tag.findMany({
+    orderBy: { name: 'asc' }
+  });
+
+  return (
+    <ArticlesForm
+      initialData={article}
+      pageTitle={pageTitle}
+      categories={categories}
+      tags={tags}
+    />
+  );
 }
