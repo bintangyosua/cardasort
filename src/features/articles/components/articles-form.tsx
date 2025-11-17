@@ -84,18 +84,14 @@ export default function ArticlesForm({
 
     try {
       if (initialData?.id) {
-        console.log('Updating entity:', initialData.id, data);
         await articlesService.update(initialData.id, data);
       } else {
-        console.log('Creating entity:', data);
         await articlesService.create(data);
       }
       router.push('/dashboard/articles');
       router.refresh();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error saving entity:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
     }
   }
 
