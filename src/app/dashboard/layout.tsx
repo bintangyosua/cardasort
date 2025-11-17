@@ -1,7 +1,6 @@
 import KBar from '@/components/kbar';
 import AppSidebar from '@/components/layout/app-sidebar';
 import Header from '@/components/layout/header';
-import WebSocketStatus from '@/components/websocket-status';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
@@ -28,7 +27,6 @@ export default async function DashboardLayout({
           {/* page main content */}
           {children}
           {/* page main content ends */}
-          <WebSocketStatus />
         </SidebarInset>
       </SidebarProvider>
     </KBar>

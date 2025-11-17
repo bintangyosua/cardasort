@@ -1,38 +1,21 @@
 import PageContainer from '@/components/layout/page-container';
-import { Badge } from '@/components/ui/badge';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardAction,
-  CardFooter
-} from '@/components/ui/card';
-import { IconTrendingDown, IconTrendingUp } from '@tabler/icons-react';
 import React from 'react';
-import { OverviewServerService } from '@/lib/api/overview.server.service';
 
-export default async function OverViewLayout({
-  pie_stats,
-  bar_stats
-}: {
-  pie_stats: React.ReactNode;
-  bar_stats: React.ReactNode;
-}) {
+export default async function OverViewLayout({}: {}) {
   // Fetch overview data
-  const overviewData = await OverviewServerService.getAllCounts({
-    period: 'all'
-  });
+  // const overviewData = await OverviewServerService.getAllCounts({
+  //   period: 'all'
+  // });
 
-  const { users, articles, chatSessions, discussionRooms } =
-    overviewData.success
-      ? overviewData.data
-      : {
-          users: { total: 0 },
-          articles: { articles: { total: 0 }, categories: { total: 0 } },
-          chatSessions: { total: 0 },
-          discussionRooms: { total: 0 }
-        };
+  // const { users, articles, chatSessions, discussionRooms } =
+  //   overviewData.success
+  //     ? overviewData.data
+  //     : {
+  //         users: { total: 0 },
+  //         articles: { articles: { total: 0 }, categories: { total: 0 } },
+  //         chatSessions: { total: 0 },
+  //         discussionRooms: { total: 0 }
+  //       };
 
   return (
     <PageContainer>
@@ -43,7 +26,7 @@ export default async function OverViewLayout({
           </h2>
         </div>
 
-        <div className='*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:grid-cols-2 lg:grid-cols-4'>
+        {/* <div className='*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:grid-cols-2 lg:grid-cols-4'>
           <Card className='@container/card'>
             <CardHeader>
               <CardDescription>Total Users</CardDescription>
@@ -137,7 +120,7 @@ export default async function OverViewLayout({
         <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7'>
           <div className='col-span-4'>{bar_stats}</div>
           <div className='col-span-4 md:col-span-3'>{pie_stats}</div>
-        </div>
+        </div> */}
       </div>
     </PageContainer>
   );
