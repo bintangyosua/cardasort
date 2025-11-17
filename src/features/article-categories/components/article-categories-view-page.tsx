@@ -33,9 +33,6 @@ export default async function ArticleCategoriesViewPage({
   }
 
   return (
-    <ArticleCategoriesForm
-      initialData={entityCategory}
-      pageTitle={pageTitle}
-    />
+    <ArticleCategoriesForm initialData={entityCategory} pageTitle={pageTitle} />
   );
 }
