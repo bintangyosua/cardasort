@@ -7,12 +7,12 @@ export default async function OverViewLayout({}: {}) {
   //   period: 'all'
   // });
 
-  // const { users, articles, chatSessions, discussionRooms } =
+  // const { users, entities, chatSessions, discussionRooms } =
   //   overviewData.success
   //     ? overviewData.data
   //     : {
   //         users: { total: 0 },
-  //         articles: { articles: { total: 0 }, categories: { total: 0 } },
+  //         entities: { entities: { total: 0 }, categories: { total: 0 } },
   //         chatSessions: { total: 0 },
   //         discussionRooms: { total: 0 }
   //       };
@@ -51,9 +51,9 @@ export default async function OverViewLayout({}: {}) {
           </Card>
           <Card className='@container/card'>
             <CardHeader>
-              <CardDescription>Total Articles</CardDescription>
+              <CardDescription>Total Entities</CardDescription>
               <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
-                {articles.articles?.total?.toLocaleString() || '0'}
+                {entities.entities?.total?.toLocaleString() || '0'}
               </CardTitle>
               <CardAction>
                 <Badge variant='outline'>
@@ -64,10 +64,10 @@ export default async function OverViewLayout({}: {}) {
             </CardHeader>
             <CardFooter className='flex-col items-start gap-1.5 text-sm'>
               <div className='line-clamp-1 flex gap-2 font-medium'>
-                Content articles <IconTrendingUp className='size-4' />
+                Content entities <IconTrendingUp className='size-4' />
               </div>
               <div className='text-muted-foreground'>
-                Articles available in {articles.categories?.total || 0}{' '}
+                Entities available in {entities.categories?.total || 0}{' '}
                 categories
               </div>
             </CardFooter>

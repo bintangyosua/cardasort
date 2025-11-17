@@ -19,7 +19,7 @@ import {
   ChartTooltip,
   ChartTooltipContent
 } from '@/components/ui/chart';
-import { ArticlesPieChartResponse } from '@/types/overview';
+import { EntitiesPieChartResponse } from '@/types/overview';
 
 // Generate gray colors based on number of categories
 // Examples:
@@ -46,7 +46,7 @@ const generateGrayColors = (categoryCount: number) => {
 };
 
 interface PieGraphProps {
-  pieData?: ArticlesPieChartResponse | null;
+  pieData?: EntitiesPieChartResponse | null;
 }
 
 function PieGraphComponent({ pieData }: PieGraphProps) {
@@ -73,7 +73,7 @@ function PieGraphComponent({ pieData }: PieGraphProps) {
   const chartConfig = React.useMemo(() => {
     const config: ChartConfig = {
       count: {
-        label: 'Articles'
+        label: 'Entities'
       }
     };
 
@@ -100,9 +100,9 @@ function PieGraphComponent({ pieData }: PieGraphProps) {
       <Card className='py-4 sm:py-0'>
         <CardHeader className='flex flex-col items-stretch border-b !p-0 sm:flex-row'>
           <div className='flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0'>
-            <CardTitle>Articles by Category</CardTitle>
+            <CardTitle>Entities by Category</CardTitle>
             <CardDescription>
-              Distribution of published articles across categories
+              Distribution of published entities across categories
             </CardDescription>
           </div>
           <div className='flex'>
@@ -111,10 +111,10 @@ function PieGraphComponent({ pieData }: PieGraphProps) {
               className='data-[active=true]:bg-muted/50 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left sm:border-t-0 sm:border-l sm:px-8 sm:py-6'
             >
               <span className='text-muted-foreground text-xs'>
-                Total Articles
+                Total Entities
               </span>
               <span className='text-lg leading-none font-bold sm:text-3xl'>
-                {pieData?.total_articles_matched?.toLocaleString() || '0'}
+                {pieData?.total_entities_matched?.toLocaleString() || '0'}
               </span>
             </button>
           </div>
@@ -122,14 +122,14 @@ function PieGraphComponent({ pieData }: PieGraphProps) {
         <CardContent className='flex h-[250px] items-center justify-center px-2 pt-4 sm:px-6 sm:pt-6'>
           <div className='text-center'>
             <p className='text-muted-foreground text-sm'>
-              No article data available
+              No entity data available
             </p>
             <p className='text-muted-foreground mt-1 text-xs'>
               {pieData ? 'No categories found' : 'Failed to load data'}
             </p>
             {pieData && (
               <p className='text-muted-foreground mt-2 text-xs'>
-                Total articles: {pieData.total_articles_matched || 0}
+                Total entities: {pieData.total_entities_matched || 0}
               </p>
             )}
           </div>
@@ -151,12 +151,12 @@ function PieGraphComponent({ pieData }: PieGraphProps) {
     <Card className='py-4 sm:py-0'>
       <CardHeader className='flex flex-col items-stretch border-b !p-0 sm:flex-row'>
         <div className='flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0'>
-          <CardTitle>Articles by Category</CardTitle>
+          <CardTitle>Entities by Category</CardTitle>
           <CardDescription>
             <span className='hidden @[540px]/card:block'>
-              Distribution of published articles across categories
+              Distribution of published entities across categories
             </span>
-            <span className='@[540px]/card:hidden'>Article distribution</span>
+            <span className='@[540px]/card:hidden'>Entity distribution</span>
           </CardDescription>
         </div>
         <div className='flex'>
@@ -165,10 +165,10 @@ function PieGraphComponent({ pieData }: PieGraphProps) {
             className='data-[active=true]:bg-muted/50 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left sm:border-t-0 sm:border-l sm:px-8 sm:py-6'
           >
             <span className='text-muted-foreground text-xs'>
-              Total Articles
+              Total Entities
             </span>
             <span className='text-lg leading-none font-bold sm:text-3xl'>
-              {pieData.total_articles_matched.toLocaleString()}
+              {pieData.total_entities_matched.toLocaleString()}
             </span>
           </button>
         </div>
@@ -207,14 +207,14 @@ function PieGraphComponent({ pieData }: PieGraphProps) {
                           y={viewBox.cy}
                           className='fill-foreground text-3xl font-bold'
                         >
-                          {pieData.total_articles_matched}
+                          {pieData.total_entities_matched}
                         </tspan>
                         <tspan
                           x={viewBox.cx}
                           y={(viewBox.cy || 0) + 24}
                           className='fill-muted-foreground text-sm'
                         >
-                          Total Articles
+                          Total Entities
                         </tspan>
                       </text>
                     );
@@ -247,7 +247,7 @@ export const PieGraph = dynamic(() => Promise.resolve(PieGraphComponent), {
     <Card className='py-4 sm:py-0'>
       <CardHeader className='flex flex-col items-stretch border-b !p-0 sm:flex-row'>
         <div className='flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0'>
-          <CardTitle>Articles by Category</CardTitle>
+          <CardTitle>Entities by Category</CardTitle>
           <CardDescription>Loading chart...</CardDescription>
         </div>
         <div className='flex'>
@@ -256,7 +256,7 @@ export const PieGraph = dynamic(() => Promise.resolve(PieGraphComponent), {
             className='data-[active=true]:bg-muted/50 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left sm:border-t-0 sm:border-l sm:px-8 sm:py-6'
           >
             <span className='text-muted-foreground text-xs'>
-              Total Articles
+              Total Entities
             </span>
             <span className='text-lg leading-none font-bold sm:text-3xl'>
               ...

@@ -1,9 +1,9 @@
-import ArticlesForm from '@/features/articles/components/articles-form';
+import EntitiesForm from '@/features/entities/components/entities-form';
 
-// Test component for articles form with backend response structure
-export default function TestArticlesForm() {
+// Test component for entities form with backend response structure
+export default function TestEntitiesForm() {
   // Mock backend response structure
-  const mockBackendArticle = {
+  const mockBackendEntity = {
     id: 11,
     title: 'Sarah Photo',
     slug: 'sarah-photo',
@@ -11,13 +11,13 @@ export default function TestArticlesForm() {
     content: 'dawg',
     status: 'published' as const,
     coverImageId: 7,
-    coverImageUrl: '/uploads/articles/1755534057665-iw1u6rf48y.png',
+    coverImageUrl: '/uploads/entities/1755534057665-iw1u6rf48y.png',
     images: [
       {
         id: 7,
         articleId: 11,
-        url: '/uploads/articles/1755534057665-iw1u6rf48y.png',
-        storageKey: 'uploads/articles/1755534057665-iw1u6rf48y.png',
+        url: '/uploads/entities/1755534057665-iw1u6rf48y.png',
+        storageKey: 'uploads/entities/1755534057665-iw1u6rf48y.png',
         alt: 'Sarah',
         isCover: true,
         position: 0,
@@ -46,7 +46,7 @@ export default function TestArticlesForm() {
   return (
     <div className='container mx-auto py-8'>
       <h1 className='mb-8 text-2xl font-bold'>
-        Test Articles Form with Backend Data
+        Test Entities Form with Backend Data
       </h1>
 
       {/* Test with backend response structure */}
@@ -54,16 +54,16 @@ export default function TestArticlesForm() {
         <h2 className='mb-4 text-lg font-semibold'>
           Edit Mode (with backend response data)
         </h2>
-        <ArticlesForm
-          initialData={mockBackendArticle as any}
-          pageTitle='Edit Article'
+        <EntitiesForm
+          initialData={mockBackendEntity as any}
+          pageTitle='Edit Entity'
         />
       </div>
 
       {/* Test without existing data */}
       <div className='mb-8'>
         <h2 className='mb-4 text-lg font-semibold'>Create Mode (empty form)</h2>
-        <ArticlesForm initialData={null} pageTitle='Create Article' />
+        <EntitiesForm initialData={null} pageTitle='Create Entity' />
       </div>
     </div>
   );

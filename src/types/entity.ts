@@ -28,7 +28,3 @@ export type Entity = {
   createdAt?: Date | string;
   updatedAt?: Date | string;
 };
-
-// Legacy types for backward compatibility
-export type ArticleCategory = EntityCategory;
-export type Article = Entity;

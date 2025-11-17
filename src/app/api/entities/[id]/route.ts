@@ -1,4 +1,4 @@
-import { EntitiesServerService } from '@/lib/api/articles.server.service';
+import { EntitiesServerService } from '@/lib/api/entities.server.service';
 import { NextRequest, NextResponse } from 'next/server';
 
 type RouteContext = {

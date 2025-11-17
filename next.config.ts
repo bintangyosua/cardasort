@@ -20,7 +20,37 @@ const baseConfig: NextConfig = {
       }
     ]
   },
-  transpilePackages: ['geist']
+  transpilePackages: ['geist'],
+  webpack: (config, { isServer }) => {
+    // Exclude problematic directories from webpack's file watching
+    config.watchOptions = {
+      ...config.watchOptions,
+      ignored: [
+        '**/node_modules/**',
+        '**/.git/**',
+        '**/.next/**',
+        '**/Application Data/**',
+        '**/Cookies/**',
+        '**/Local Settings/**',
+        '**/Recent/**',
+        '**/SendTo/**',
+        '**/Start Menu/**',
+        '**/Templates/**',
+        '**/NetHood/**',
+        '**/PrintHood/**',
+        '**/My Documents/**'
+      ]
+    };
+    
+    // Also configure snapshot options to avoid scanning these directories
+    config.snapshot = {
+      ...config.snapshot,
+      managedPaths: [/^(.+?[\\/]node_modules[\\/])/],
+      immutablePaths: []
+    };
+    
+    return config;
+  }
 };
 
 let configWithPlugins = baseConfig;

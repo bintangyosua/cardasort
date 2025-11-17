@@ -29,12 +29,12 @@ export default function TestRichTextEditor() {
         </CardHeader>
         <CardContent className='space-y-6'>
           <div>
-            <label className='text-sm font-medium'>Article Content</label>
+            <label className='text-sm font-medium'>Entity Content</label>
             <div className='mt-2'>
               <RichTextEditor
                 value={content}
                 onChange={setContent}
-                placeholder='Start writing your article...'
+                placeholder='Start writing your entity...'
                 className='w-full'
               />
             </div>

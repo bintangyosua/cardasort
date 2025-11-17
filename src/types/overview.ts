@@ -3,14 +3,14 @@ export interface CountResponse {
   [key: string]: any;
 }
 
-export interface ArticlesCountResponse {
-  articles: CountResponse;
+export interface EntitiesCountResponse {
+  entities: CountResponse;
   categories: CountResponse;
 }
 
 export interface OverviewCounts {
   users: CountResponse;
-  articles: ArticlesCountResponse;
+  entities: EntitiesCountResponse;
   chatSessions: CountResponse;
   discussionRooms: CountResponse;
 }
@@ -30,7 +30,7 @@ export interface PieCategoryItem {
   percentage: number;
 }
 
-export interface ArticlesPieChartResponse {
+export interface EntitiesPieChartResponse {
   success: boolean;
   time: string;
   filters: {
@@ -41,7 +41,7 @@ export interface ArticlesPieChartResponse {
     includeUncategorized: boolean;
     topN: number | null;
   };
-  total_articles_matched: number;
+  total_entities_matched: number;
   total_assignments: number;
   categories: PieCategoryItem[];
 }

@@ -1,4 +1,4 @@
-// Test MultiSelect implementation for Articles
+// Test MultiSelect implementation for Entities
 import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -55,7 +55,7 @@ export default function TestMultiSelectForm() {
             name='categories'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Article Categories</FormLabel>
+                <FormLabel>Entity Categories</FormLabel>
                 <FormControl>
                   <MultiSelect
                     options={categoriesList}
@@ -69,7 +69,7 @@ export default function TestMultiSelectForm() {
                 </FormControl>
                 <FormMessage />
                 <p className='text-muted-foreground text-xs'>
-                  Select one or more categories for this article
+                  Select one or more categories for this entity
                 </p>
               </FormItem>
             )}

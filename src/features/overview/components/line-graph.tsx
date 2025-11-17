@@ -30,7 +30,7 @@ const formatDate = (dateString: string) => {
 };
 
 // Type definition for the data structure
-interface ArticlesGrowthApiResponse {
+interface EntitiesGrowthApiResponse {
   success: boolean;
   data?: {
     success?: boolean;
@@ -48,15 +48,15 @@ interface ArticlesGrowthApiResponse {
 }
 
 interface LineGraphProps {
-  data: ArticlesGrowthApiResponse;
+  data: EntitiesGrowthApiResponse;
 }
 
 const chartConfig = {
   views: {
-    label: 'Articles Published'
+    label: 'Entities Published'
   },
-  articles: {
-    label: 'Articles',
+  entities: {
+    label: 'Entities',
     color: 'var(--chart-1)'
   }
 } satisfies ChartConfig;
@@ -68,12 +68,12 @@ export function LineGraph({ data }: LineGraphProps) {
 
     return data.data.buckets.map((bucket) => ({
       date: new Date(bucket.start).toISOString().split('T')[0],
-      articles: bucket.count
+      entities: bucket.count
     }));
   }, [data]);
 
   const [activeChart, setActiveChart] =
-    React.useState<keyof typeof chartConfig>('articles');
+    React.useState<keyof typeof chartConfig>('entities');
 
   const total = React.useMemo(() => {
     return data?.data?.total || 0;
@@ -85,9 +85,9 @@ export function LineGraph({ data }: LineGraphProps) {
       <Card className='py-4 sm:py-0'>
         <CardHeader className='flex flex-col items-stretch border-b !p-0 sm:flex-row'>
           <div className='flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0'>
-            <CardTitle>Articles Growth - Interactive</CardTitle>
+            <CardTitle>Entities Growth - Interactive</CardTitle>
             <CardDescription>
-              {data?.error || 'Failed to load articles data'}
+              {data?.error || 'Failed to load entities data'}
             </CardDescription>
           </div>
           <div className='flex'>
@@ -96,7 +96,7 @@ export function LineGraph({ data }: LineGraphProps) {
               className='data-[active=true]:bg-muted/50 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left sm:border-t-0 sm:border-l sm:px-8 sm:py-6'
             >
               <span className='text-muted-foreground text-xs'>
-                {chartConfig.articles.label}
+                {chartConfig.entities.label}
               </span>
               <span className='text-lg leading-none font-bold sm:text-3xl'>
                 0
@@ -107,7 +107,7 @@ export function LineGraph({ data }: LineGraphProps) {
         <CardContent className='flex h-[250px] items-center justify-center px-2 pt-4 sm:px-6 sm:pt-6'>
           <div className='text-center'>
             <p className='text-muted-foreground text-sm'>
-              {data?.error || 'Failed to load articles data'}
+              {data?.error || 'Failed to load entities data'}
             </p>
           </div>
         </CardContent>
@@ -116,7 +116,7 @@ export function LineGraph({ data }: LineGraphProps) {
             No data available
           </div>
           <div className='text-muted-foreground line-clamp-1 leading-none'>
-            Unable to show article publication trends
+            Unable to show entity publication trends
           </div>
         </CardFooter>
       </Card>
@@ -127,9 +127,9 @@ export function LineGraph({ data }: LineGraphProps) {
     <Card className='py-4 sm:py-0'>
       <CardHeader className='flex flex-col items-stretch border-b !p-0 sm:flex-row'>
         <div className='flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0'>
-          <CardTitle>Articles Growth - Interactive</CardTitle>
+          <CardTitle>Entities Growth - Interactive</CardTitle>
           <CardDescription>
-            Showing article publication count{' '}
+            Showing entity publication count{' '}
             {data.data.from && data.data.to ? (
               <>
                 from {formatDate(data.data.from)} to {formatDate(data.data.to)}
@@ -145,7 +145,7 @@ export function LineGraph({ data }: LineGraphProps) {
             className='data-[active=true]:bg-muted/50 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left sm:border-t-0 sm:border-l sm:px-8 sm:py-6'
           >
             <span className='text-muted-foreground text-xs'>
-              {chartConfig.articles.label}
+              {chartConfig.entities.label}
             </span>
             <span className='text-lg leading-none font-bold sm:text-3xl'>
               {total.toLocaleString()}
@@ -197,9 +197,9 @@ export function LineGraph({ data }: LineGraphProps) {
               }
             />
             <Line
-              dataKey='articles'
+              dataKey='entities'
               type='monotone'
-              stroke='var(--color-articles)'
+              stroke='var(--color-entities)'
               strokeWidth={2}
               dot={false}
             />
@@ -208,11 +208,11 @@ export function LineGraph({ data }: LineGraphProps) {
       </CardContent>
       <CardFooter className='mb-5 flex-col items-start gap-2 text-sm'>
         <div className='line-clamp-1 flex gap-2 leading-none font-medium'>
-          The number of articles in this period is {total.toLocaleString()}
+          The number of entities in this period is {total.toLocaleString()}
         </div>
         <div className='text-muted-foreground line-clamp-1 leading-none'>
-          A total of {total.toLocaleString()} articles were published in this
-          period, showing the growth of article publications over time.
+          A total of {total.toLocaleString()} entities were published in this
+          period, showing the growth of entity publications over time.
         </div>
       </CardFooter>
     </Card>

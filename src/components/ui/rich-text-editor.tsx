@@ -177,7 +177,7 @@ export function RichTextEditor({
         }
       }),
       Placeholder.configure({
-        placeholder: placeholder || 'Write your article content here...'
+        placeholder: placeholder || 'Write your entity content here...'
       })
     ],
     content: value,
