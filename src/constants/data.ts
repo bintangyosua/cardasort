@@ -42,7 +42,7 @@ export const navItems: NavItem[] = [
       },
       {
         title: 'Entity Tags',
-        url: '/dashboard/entity-tags',
+        url: '/dashboard/tags',
         icon: 'post',
         shortcut: ['e', 't']
       }
