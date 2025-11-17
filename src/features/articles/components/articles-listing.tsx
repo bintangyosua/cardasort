@@ -12,7 +12,7 @@ type ArticlesListingPageProps = {};
 export default async function ArticlesListingPage({}: ArticlesListingPageProps) {
   // Showcasing the use of search params cache in nested RSCs
   const page = searchParamsCache.get('page');
-  const search = searchParamsCache.get('title');
+  const search = searchParamsCache.get('name'); // Changed from 'title' to 'search'
   const pageLimit = searchParamsCache.get('perPage');
   const categories = searchParamsCache.get('categories');
   const sort = searchParamsCache.get('sort');
@@ -40,13 +40,13 @@ export default async function ArticlesListingPage({}: ArticlesListingPageProps) 
 
     if (Array.isArray(categories)) {
       categoryOptions = categories.map((category: any) => ({
-        value:
-          category.slug || category.name || category.id || String(category),
+        // Use name as value for filtering (consistent with Prisma schema)
+        value: category.name || String(category.id),
         label:
           category.label || category.name
             ? (category.label || category.name).charAt(0).toUpperCase() +
               (category.label || category.name).slice(1)
-            : category.slug || category.id || String(category)
+            : String(category.id)
       }));
     }
   }

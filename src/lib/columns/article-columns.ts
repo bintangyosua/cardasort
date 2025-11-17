@@ -18,7 +18,7 @@ export function createArticleColumnsConfig(
       enableSorting: true
     },
     categoryColumn: {
-      id: 'category',
+      id: 'categories', // Changed to 'categories' for URL param
       accessorKey: 'category',
       enableColumnFilter: true,
       enableSorting: true,

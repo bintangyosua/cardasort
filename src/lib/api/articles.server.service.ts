@@ -57,12 +57,24 @@ export class EntitiesServerService {
 
       // Categories filter
       if (filters.categories) {
-        const categoryNames = filters.categories.split('.');
-        where.category = {
-          name: {
-            in: categoryNames
-          }
-        };
+        const categoryIdentifiers = filters.categories.split('.');
+
+        // Check if identifiers are numbers (IDs) or strings (names)
+        const isNumeric = categoryIdentifiers.every((id) => !isNaN(Number(id)));
+
+        if (isNumeric) {
+          // Filter by category IDs
+          where.categoryId = {
+            in: categoryIdentifiers.map(Number)
+          };
+        } else {
+          // Filter by category names
+          where.category = {
+            name: {
+              in: categoryIdentifiers
+            }
+          };
+        }
       }
 
       // Build orderBy clause
@@ -72,9 +84,10 @@ export class EntitiesServerService {
           const sortParams = JSON.parse(filters.sort);
           if (Array.isArray(sortParams) && sortParams.length > 0) {
             const { id, desc } = sortParams[0];
+            // Map column id to database field
             if (id === 'name') {
               orderBy = { name: desc ? 'desc' : 'asc' };
-            } else if (id === 'category') {
+            } else if (id === 'category' || id === 'categories') {
               orderBy = { category: { name: desc ? 'desc' : 'asc' } };
             } else if (id === 'createdAt' || id === 'created_at') {
               orderBy = { createdAt: desc ? 'desc' : 'asc' };

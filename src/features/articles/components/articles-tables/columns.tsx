@@ -24,8 +24,9 @@ export const createArticleColumnsFromConfig = (
     header: 'IMAGE',
     cell: ({ row }) => {
       const imageUrl = row.getValue('imageUrl') as string | null;
-      let imageSrc = 'https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg';
-      
+      let imageSrc =
+        'https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg';
+
       if (imageUrl) {
         // Check if imageUrl is already a full URL
         if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
@@ -38,7 +39,7 @@ export const createArticleColumnsFromConfig = (
           imageSrc = imageUrl;
         }
       }
-      
+
       return (
         <div className='relative aspect-square overflow-hidden'>
           <Image
@@ -54,6 +55,7 @@ export const createArticleColumnsFromConfig = (
   {
     id: 'name',
     accessorKey: 'name',
+    accessorFn: (row) => row.name, // Explicit accessor function
     header: ({ column }: { column: Column<Entity, unknown> }) => (
       <DataTableColumnHeader column={column} title='Name' />
     ),
@@ -67,9 +69,11 @@ export const createArticleColumnsFromConfig = (
     enableColumnFilter: true,
     enableSorting: true
   },
+  // Add a hidden column with id 'name' for backward compatibility with sorting
   {
-    id: 'category',
+    id: 'category', // Use 'category' as id for URL param
     accessorKey: 'category',
+    accessorFn: (row) => row.category, // Explicit accessor function
     header: ({ column }: { column: Column<Entity, unknown> }) => (
       <DataTableColumnHeader column={column} title='Category' />
     ),
