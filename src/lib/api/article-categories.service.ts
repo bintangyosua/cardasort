@@ -1,25 +1,23 @@
-import { fakeArticleCategories } from '@/constants/mock-api';
 import api from '../axios';
 import { toast } from 'sonner';
 
 export const articleCategoriesService = {
   getAll: async (filters?: { [key: string]: any }) => {
     try {
-      const response = await api.get('/articles/categories', {
+      const response = await api.get('/entity-categories', {
         params: filters
       });
       return response.data;
     } catch (error) {
-      console.error('API call failed, falling back to mock data:', error);
-      // Fallback to mock data if API fails
-      const categories = await fakeArticleCategories.getAll({});
-      return categories;
+      console.error('API call failed:', error);
+      toast.error('Failed to fetch categories.');
+      throw error;
     }
   },
 
   create: async (data: { name: string; label?: string }) => {
     try {
-      const response = await api.post('/articles/categories', data);
+      const response = await api.post('/entity-categories', data);
       toast.success('Entity Category created successfully!');
       return response.data;
     } catch (error) {
@@ -30,7 +28,7 @@ export const articleCategoriesService = {
 
   getArticleCategoryById: async (id: number) => {
     try {
-      const response = await api.get(`/articles/categories/${id}`);
+      const response = await api.get(`/entity-categories/${id}`);
       return response.data;
     } catch (error) {
       console.error(error);
@@ -41,7 +39,7 @@ export const articleCategoriesService = {
 
   delete: async (id: number) => {
     try {
-      await api.delete(`/articles/categories/${id}`);
+      await api.delete(`/entity-categories/${id}`);
       toast.success('Entity Category deleted successfully!');
     } catch (error) {
       toast.error('Failed to delete entity category.');
@@ -51,7 +49,7 @@ export const articleCategoriesService = {
 
   update: async (id: number, data: { name: string; label?: string }) => {
     try {
-      const response = await api.patch(`/articles/categories/${id}`, data);
+      const response = await api.patch(`/entity-categories/${id}`, data);
       toast.success('Entity Category updated successfully!');
       return response.data;
     } catch (error) {

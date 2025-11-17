@@ -8,7 +8,7 @@ export const metadata = {
   title: 'Dashboard : Article View'
 };
 
-type PageProps = { params: Promise<{ articleCategoryId: string }> };
+type PageProps = { params: Promise<{ entityCategoryId: string }> };
 
 export default async function Page(props: PageProps) {
   const params = await props.params;
@@ -17,7 +17,7 @@ export default async function Page(props: PageProps) {
       <div className='flex-1 space-y-4'>
         <Suspense fallback={<FormCardSkeleton />}>
           <ArticleCategoriesViewPage
-            articleCategoryId={params.articleCategoryId}
+            entityCategoryId={params.entityCategoryId}
           />
         </Suspense>
       </div>
