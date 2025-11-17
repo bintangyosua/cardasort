@@ -36,7 +36,7 @@ export class EntitiesServerService {
     limit?: number;
     scope?: string;
     search?: string;
-    categories?: string;
+    category?: string;
     sort?: string;
   }) {
     try {
@@ -55,9 +55,9 @@ export class EntitiesServerService {
         };
       }
 
-      // Categories filter
-      if (filters.categories) {
-        const categoryIdentifiers = filters.categories.split('.');
+      // Category filter
+      if (filters.category) {
+        const categoryIdentifiers = filters.category.split('.');
 
         // Check if identifiers are numbers (IDs) or strings (names)
         const isNumeric = categoryIdentifiers.every((id) => !isNaN(Number(id)));
@@ -87,7 +87,7 @@ export class EntitiesServerService {
             // Map column id to database field
             if (id === 'name') {
               orderBy = { name: desc ? 'desc' : 'asc' };
-            } else if (id === 'category' || id === 'categories') {
+            } else if (id === 'category') {
               orderBy = { category: { name: desc ? 'desc' : 'asc' } };
             } else if (id === 'createdAt' || id === 'created_at') {
               orderBy = { createdAt: desc ? 'desc' : 'asc' };

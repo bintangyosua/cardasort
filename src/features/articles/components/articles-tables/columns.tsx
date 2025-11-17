@@ -69,9 +69,8 @@ export const createArticleColumnsFromConfig = (
     enableColumnFilter: true,
     enableSorting: true
   },
-  // Add a hidden column with id 'name' for backward compatibility with sorting
   {
-    id: 'category', // Use 'category' as id for URL param
+    id: 'category',
     accessorKey: 'category',
     accessorFn: (row) => row.category, // Explicit accessor function
     header: ({ column }: { column: Column<Entity, unknown> }) => (

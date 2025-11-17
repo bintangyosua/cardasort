@@ -14,7 +14,7 @@ export default async function ArticlesListingPage({}: ArticlesListingPageProps) 
   const page = searchParamsCache.get('page');
   const search = searchParamsCache.get('name'); // Changed from 'title' to 'search'
   const pageLimit = searchParamsCache.get('perPage');
-  const categories = searchParamsCache.get('categories');
+  const category = searchParamsCache.get('category');
   const sort = searchParamsCache.get('sort');
 
   const filters = {
@@ -22,7 +22,7 @@ export default async function ArticlesListingPage({}: ArticlesListingPageProps) 
     limit: pageLimit,
     scope: 'admin',
     ...(search && { search }),
-    ...(categories && { categories: categories }),
+    ...(category && { category: category }),
     ...(sort && { sort })
   };
 
