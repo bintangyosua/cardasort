@@ -7,7 +7,7 @@ const baseConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'api.slingacademy.com',
+        hostname: 'i.pinimg.com',
         port: ''
       },
       {
@@ -17,12 +17,6 @@ const baseConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: '*'
-      },
-      {
-        protocol: 'http',
-        hostname: '195.88.211.126',
-        port: '3001',
-        pathname: '/uploads/articles/**'
       }
     ]
   },

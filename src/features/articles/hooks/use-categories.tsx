@@ -1,5 +1,5 @@
 import { articleCategoriesService } from '@/lib/api/article-categories.service';
-import { ArticleCategoriesServerService } from '@/lib/api/articles-categories.server.service';
+import { EntityCategoriesServerService } from '@/lib/api/articles-categories.server.service';
 import { useState, useEffect } from 'react';
 
 export interface Category {

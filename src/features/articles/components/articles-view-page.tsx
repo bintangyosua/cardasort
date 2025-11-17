@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import ArticlesForm from './articles-form';
 import { Article } from '@/types/entity';
 import { articlesService } from '@/lib/api/articles.service';
-import { ArticlesServerService } from '@/lib/api/articles.server.service';
+import { EntitiesServerService } from '@/lib/api/articles.server.service';
 
 type TArticleViewPageProps = {
   articleId: string;
@@ -16,10 +16,10 @@ export default async function ArticlesViewPage({
 
   if (articleId !== 'new') {
     try {
-      const data = await ArticlesServerService.getById(Number(articleId));
+      const data = await EntitiesServerService.getById(Number(articleId));
 
       if (data.success && data.data) {
-        article = data.data as Article;
+        article = data.data;
         pageTitle = `Edit Article`;
       } else {
         notFound();

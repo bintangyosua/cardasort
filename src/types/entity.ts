@@ -7,23 +7,28 @@ export type User = {
   created_at: string;
 };
 
-export type ArticleCategory = {
+export type Tag = {
   id: number;
   name: string;
-  slug: string;
-  created_at: string;
-  updated_at: string;
 };
 
-export type Article = {
+export type EntityCategory = {
   id: number;
-  title: string;
-  slug: string;
-  status: 'published' | 'draft'; // bisa pakai union biar ketat
-  summary?: string;
-  categories?: ArticleCategory[]; // Support both backend format (string) and frontend format (array)
-  content: string;
-  coverImageAlt?: string;
-  coverImageUrl?: string;
-  cover?: File; // Optional for existing articles
+  name: string;
+  label?: string | null;
 };
+
+export type Entity = {
+  id: number;
+  name: string;
+  imageUrl?: string | null;
+  categoryId: number;
+  category?: EntityCategory;
+  tags?: Tag[];
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+};
+
+// Legacy types for backward compatibility
+export type ArticleCategory = EntityCategory;
+export type Article = Entity;

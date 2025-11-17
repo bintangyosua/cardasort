@@ -3,14 +3,14 @@ export function createArticleColumnsConfig(
 ) {
   return {
     imageColumn: {
-      accessorKey: 'image_url',
+      accessorKey: 'imageUrl',
       header: 'IMAGE'
     },
-    titleColumn: {
-      id: 'title',
-      accessorKey: 'title',
+    nameColumn: {
+      id: 'name',
+      accessorKey: 'name',
       meta: {
-        label: 'Title',
+        label: 'Name',
         placeholder: 'Search...',
         variant: 'text'
       },
@@ -31,8 +31,12 @@ export function createArticleColumnsConfig(
         }))
       }
     },
+    tagsColumn: {
+      id: 'tags',
+      accessorKey: 'tags'
+    },
     createdAtColumn: {
-      accessorKey: 'created_at',
+      accessorKey: 'createdAt',
       enableSorting: true
     },
     actionsColumn: {

@@ -18,79 +18,51 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { FileUploader } from '@/components/file-uploader';
 import { MultiSelect } from '@/components/multi-select';
 import { ACCEPTED_IMAGE_TYPES, MAX_FILE_SIZE } from '@/constants/form';
-import { useEffect, useState } from 'react';
-import { Article } from '@/types/entity';
-import { useCategories } from '../hooks/use-categories';
-import { articlesService } from '@/lib/api/articles.service';
+import { useState } from 'react';
+import { Entity } from '@/types/entity';
 import { useRouter } from 'next/navigation';
 
 export default function ArticlesForm({
   initialData,
-  pageTitle
+  pageTitle,
+  categories = [],
+  tags = []
 }: {
-  initialData: Article | null;
+  initialData: Entity | null;
   pageTitle: string;
+  categories?: Array<{ id: number; name: string; label?: string | null }>;
+  tags?: Array<{ id: number; name: string }>;
 }) {
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(
-    initialData?.coverImageUrl || null
+    initialData?.imageUrl || null
   );
-
-  // Fetch categories for MultiSelect
-  const { categories, loading: categoriesLoading } = useCategories();
 
   const router = useRouter();
 
-  // Dynamic schema based on available categories and existing data
   const formSchema = z.object({
-    title: z
+    name: z
       .string()
       .min(3, {
-        message: 'Article title must be at least 3 characters.'
+        message: 'Entity name must be at least 3 characters.'
       })
       .max(200, {
-        message: 'Article title must not exceed 200 characters.'
+        message: 'Entity name must not exceed 200 characters.'
       }),
-    summary: z
-      .string()
-      .max(220, {
-        message: 'Article summary must not exceed 220 characters.'
-      })
-      .optional(),
-    content: z
-      .string()
-      .min(1, {
-        message: 'Article content is required.'
-      })
-      .refine(
-        (value) => {
-          // Remove HTML tags to check actual content length
-          const textOnly = value.replace(/<[^>]*>/g, '').trim();
-          return textOnly.length > 0;
-        },
-        {
-          message: 'Article content cannot be empty.'
-        }
-      ),
-    status: z.enum(['draft', 'published']).default('draft'),
-    categories: z
-      .array(z.string())
-      .min(1, { message: 'Please select at least one category.' })
-      .default([]), // Array of category slugs
-    coverImageAlt: z.string().optional(),
-    coverImageUrl: z.string().optional(), // For URL-based cover
-    cover: z
+    categoryId: z.coerce
+      .number()
+      .min(1, { message: 'Please select a category.' }),
+    tags: z.array(z.coerce.number()).default([]),
+    imageUrl: z.string().optional(),
+    image: z
       .any()
       .refine(
         (files) => {
-          // For new articles, require either file or URL if no existing image
           if (
             !initialData &&
             (!files || files.length === 0) &&
@@ -98,15 +70,12 @@ export default function ArticlesForm({
           ) {
             return false;
           }
-          // For existing articles, files are optional
           if (files && files.length > 0) {
             return files.length === 1;
           }
           return true;
         },
-        initialData
-          ? 'Please select only one image.'
-          : 'Cover image is required.'
+        initialData ? 'Please select only one image.' : 'Image is required.'
       )
       .refine((files) => {
         if (!files || files.length === 0) return true;
@@ -119,91 +88,47 @@ export default function ArticlesForm({
   });
 
   const defaultValues = {
-    title: initialData?.title || '',
-    summary: initialData?.summary || '',
-    content: initialData?.content || '',
-    status: (initialData?.status as 'draft' | 'published') || 'draft',
-    categories: (() => {
-      if (!initialData?.categories) return [];
-
-      // Handle backend response format: array of category objects
-      if (Array.isArray(initialData.categories)) {
-        // Check if it's array of objects with slug property
-        if (
-          initialData.categories.length > 0 &&
-          typeof initialData.categories[0] === 'object' &&
-          'slug' in initialData.categories[0]
-        ) {
-          return initialData.categories.map((cat) => cat.slug);
-        }
-        // Check if it's array of strings (slugs)
-        if (
-          initialData.categories.length > 0 &&
-          typeof initialData.categories[0] === 'string'
-        ) {
-          return initialData.categories as unknown as string[];
-        }
-      }
-
-      // Handle dot-separated string format
-      if (typeof initialData.categories === 'string') {
-        return (initialData.categories as string).split('.').filter(Boolean);
-      }
-
-      return [];
-    })(),
-    coverImageAlt: initialData?.coverImageAlt || '',
-    coverImageUrl: initialData?.coverImageUrl || '',
-    cover: [] as File[] // FileUploader expects File[] type
+    name: initialData?.name || '',
+    categoryId: initialData?.categoryId || 0,
+    tags: initialData?.tags?.map((tag) => tag.id) || [],
+    imageUrl: initialData?.imageUrl || '',
+    image: [] as File[]
   };
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    values: defaultValues
+    defaultValues
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const formData = new FormData();
 
-    // Add text fields
-    formData.append('title', values.title);
-    if (values.summary) formData.append('summary', values.summary);
-    formData.append('content', values.content);
-    formData.append('status', values.status);
-    // Convert categories array to dot-separated string for backend
-    if (values.categories && values.categories.length > 0) {
-      formData.append('categories', values.categories.join('.'));
-    }
-    if (values.coverImageAlt)
-      formData.append('coverImageAlt', values.coverImageAlt);
-    if (values.coverImageUrl)
-      formData.append('coverImageUrl', values.coverImageUrl);
+    formData.append('name', values.name);
+    formData.append('categoryId', String(values.categoryId));
 
-    // Add cover file if uploaded
-    if (values.cover && values.cover.length > 0) {
-      formData.append('cover', values.cover[0]);
+    if (values.tags && values.tags.length > 0) {
+      formData.append('tags', JSON.stringify(values.tags));
     }
 
-    // TODO: Implement actual API call
-    if (initialData?.id) {
-      try {
-        await articlesService.update(initialData.id, formData);
-        router.push('/dashboard/articles');
-      } catch (error) {
-      } finally {
-        form.reset();
+    if (values.image && values.image.length > 0) {
+      formData.append('image', values.image[0]);
+    }
+
+    try {
+      if (initialData?.id) {
+        // TODO: Implement update API
+        // await entitiesService.update(initialData.id, formData);
+        console.log('Update entity:', values);
+      } else {
+        // TODO: Implement create API
+        // await entitiesService.create(formData);
+        console.log('Create entity:', values);
       }
-      // Update existing article
-      // await articlesService.update(initialData.id, formData);
-    } else {
-      try {
-        // Create new article
-        await articlesService.create(formData);
-        router.push('/dashboard/articles');
-      } catch (error) {
-      } finally {
-        form.reset();
-      }
+      router.push('/dashboard/articles');
+    } catch (error) {
+      console.error('Error saving entity:', error);
+    } finally {
+      form.reset();
     }
   }
 
@@ -219,22 +144,17 @@ export default function ArticlesForm({
           <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
             <FormField
               control={form.control}
-              name='cover'
+              name='image'
               render={({ field }) => (
                 <div className='space-y-6'>
                   <FormItem className='w-full'>
-                    <FormLabel>Cover Image</FormLabel>
+                    <FormLabel>Image</FormLabel>
                     <FormControl>
                       <FileUploader
                         value={field.value}
                         onValueChange={field.onChange}
                         maxFiles={1}
                         maxSize={5 * 1024 * 1024}
-                        // disabled={loading}
-                        // progresses={progresses}
-                        // pass the onUpload function here for direct upload
-                        // onUpload={uploadFiles}
-                        // disabled={isUploading}
                       />
                     </FormControl>
                     <FormMessage />
@@ -244,12 +164,12 @@ export default function ArticlesForm({
             />
             <FormField
               control={form.control}
-              name='coverImageAlt'
+              name='name'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Cover Image Alt Text</FormLabel>
+                  <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input placeholder='Enter image alt text' {...field} />
+                    <Input placeholder='Enter entity name' {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -257,69 +177,25 @@ export default function ArticlesForm({
             />
             <FormField
               control={form.control}
-              name='title'
+              name='categoryId'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Article Title</FormLabel>
-                  <FormControl>
-                    <Input placeholder='Enter article title' {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='summary'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Article Summary (Optional)</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder='Enter article summary (max 220 characters)'
-                      className='min-h-[80px] resize-none'
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='content'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Content</FormLabel>
-                  <FormControl>
-                    <RichTextEditor
-                      value={field.value}
-                      onChange={(value) => {
-                        field.onChange(value);
-                      }}
-                      placeholder='Enter article content...'
-                      className='min-h-[200px]'
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='status'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <FormLabel>Category</FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(Number(value))}
+                    value={String(field.value)}
+                  >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder='Select status' />
+                        <SelectValue placeholder='Select category' />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value='draft'>Draft</SelectItem>
-                      <SelectItem value='published'>Published</SelectItem>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat.id} value={String(cat.id)}>
+                          {cat.label || cat.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -328,38 +204,35 @@ export default function ArticlesForm({
             />
             <FormField
               control={form.control}
-              name='categories'
+              name='tags'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Categories</FormLabel>
+                  <FormLabel>Tags</FormLabel>
                   <FormControl>
                     <MultiSelect
-                      options={categories.map((cat) => ({
-                        value: cat.slug,
-                        label: cat.name
+                      options={tags.map((tag) => ({
+                        value: String(tag.id),
+                        label: tag.name
                       }))}
-                      defaultValue={field.value}
-                      onValueChange={field.onChange}
-                      placeholder={
-                        categoriesLoading
-                          ? 'Loading categories...'
-                          : 'Choose categories...'
+                      defaultValue={field.value.map(String)}
+                      onValueChange={(values) =>
+                        field.onChange(values.map(Number))
                       }
-                      disabled={categoriesLoading}
+                      placeholder='Choose tags...'
                       searchable={true}
                       hideSelectAll={false}
-                      maxCount={3}
+                      maxCount={5}
                     />
                   </FormControl>
                   <FormMessage />
                   <p className='text-muted-foreground text-xs'>
-                    Select one or more categories for this article
+                    Select one or more tags for this entity
                   </p>
                 </FormItem>
               )}
             />
             <Button type='submit' className='w-full'>
-              {initialData ? 'Update Article' : 'Create Article'}
+              {initialData ? 'Update Entity' : 'Create Entity'}
             </Button>
           </form>
         </Form>

@@ -3,16 +3,16 @@ import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-h
 import { Column, ColumnDef } from '@tanstack/react-table';
 import { Text } from 'lucide-react';
 import { CellAction } from './cell-action';
-import { ArticleCategory } from '@/constants/mock-api';
+import { EntityCategory } from '@/types/entity';
 
-export const columns: ColumnDef<ArticleCategory>[] = [
+export const columns: ColumnDef<EntityCategory>[] = [
   {
-    id: 'search',
+    id: 'name',
     accessorKey: 'name',
-    header: ({ column }: { column: Column<ArticleCategory, unknown> }) => (
+    header: ({ column }: { column: Column<EntityCategory, unknown> }) => (
       <DataTableColumnHeader column={column} title='Name' />
     ),
-    cell: ({ cell }) => <div>{cell.getValue<ArticleCategory['name']>()}</div>,
+    cell: ({ cell }) => <div>{cell.getValue<EntityCategory['name']>()}</div>,
     meta: {
       label: 'Name',
       placeholder: 'Search...',
@@ -23,32 +23,16 @@ export const columns: ColumnDef<ArticleCategory>[] = [
     enableSorting: true
   },
   {
-    accessorKey: 'createdAt',
-    header: ({ column }: { column: Column<ArticleCategory, unknown> }) => (
-      <DataTableColumnHeader column={column} title='Created At' />
+    id: 'label',
+    accessorKey: 'label',
+    header: ({ column }: { column: Column<EntityCategory, unknown> }) => (
+      <DataTableColumnHeader column={column} title='Label' />
     ),
-    enableSorting: true,
-    cell: ({ row }) => {
-      const createdAt = row.getValue('createdAt');
-      return (
-        <div>
-          {createdAt
-            ? new Date(createdAt as string | number | Date).toLocaleDateString(
-                'en-US',
-                {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                }
-              )
-            : ''}
-        </div>
-      );
-    }
+    cell: ({ cell }) => (
+      <div>{cell.getValue<EntityCategory['label']>() || '-'}</div>
+    ),
+    enableSorting: true
   },
-
   {
     id: 'actions',
     cell: ({ row }) => <CellAction data={row.original} />

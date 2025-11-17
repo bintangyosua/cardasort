@@ -8,7 +8,7 @@ import {
   type ArticleColumnsConfig
 } from '@/lib/columns/article-columns';
 import Image from 'next/image';
-import { Article } from '@/types/entity';
+import { Entity } from '@/types/entity';
 import { config as envConfig } from '@/config/env';
 
 // Re-export the type for convenience
@@ -17,21 +17,33 @@ export type { ArticleColumnsConfig };
 // Client-side columns implementation using server config
 export const createArticleColumnsFromConfig = (
   config: ArticleColumnsConfig
-): ColumnDef<Article>[] => [
+): ColumnDef<Entity>[] => [
   {
-    id: 'coverImageUrl',
-    accessorKey: 'coverImageUrl',
+    id: 'imageUrl',
+    accessorKey: 'imageUrl',
     header: 'IMAGE',
     cell: ({ row }) => {
+      const imageUrl = row.getValue('imageUrl') as string | null;
+      let imageSrc = 'https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg';
+      
+      if (imageUrl) {
+        // Check if imageUrl is already a full URL
+        if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+          imageSrc = imageUrl;
+        } else if (envConfig.API_URL) {
+          // It's a relative path, prepend API_URL
+          imageSrc = `${envConfig.API_URL}${imageUrl}`;
+        } else {
+          // No API_URL configured, use as is
+          imageSrc = imageUrl;
+        }
+      }
+      
       return (
         <div className='relative aspect-square overflow-hidden'>
           <Image
-            src={
-              row.getValue('coverImageUrl')
-                ? `${envConfig.API_URL}${row.getValue('coverImageUrl')}`
-                : 'https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg'
-            }
-            alt={row.getValue('title')}
+            src={imageSrc}
+            alt={row.getValue('name')}
             fill
             className='rounded-lg object-cover'
           />
@@ -40,14 +52,14 @@ export const createArticleColumnsFromConfig = (
     }
   },
   {
-    id: 'title',
-    accessorKey: 'title',
-    header: ({ column }: { column: Column<Article, unknown> }) => (
-      <DataTableColumnHeader column={column} title='Title' />
+    id: 'name',
+    accessorKey: 'name',
+    header: ({ column }: { column: Column<Entity, unknown> }) => (
+      <DataTableColumnHeader column={column} title='Name' />
     ),
-    cell: ({ cell }) => <div>{cell.getValue<Article['title']>()}</div>,
+    cell: ({ cell }) => <div>{cell.getValue<Entity['name']>()}</div>,
     meta: {
-      label: 'Title',
+      label: 'Name',
       placeholder: 'Search...',
       variant: 'text',
       icon: Text
@@ -56,18 +68,14 @@ export const createArticleColumnsFromConfig = (
     enableSorting: true
   },
   {
-    id: 'categories',
-    accessorKey: 'categories',
-    header: ({ column }: { column: Column<Article, unknown> }) => (
-      <DataTableColumnHeader column={column} title='Categories' />
+    id: 'category',
+    accessorKey: 'category',
+    header: ({ column }: { column: Column<Entity, unknown> }) => (
+      <DataTableColumnHeader column={column} title='Category' />
     ),
-    cell: ({ cell }) => {
-      const categoryValue = cell.getValue<Article['categories']>();
-      return (
-        <div>
-          {categoryValue?.map((cat) => cat.name).join(', ') || 'No Category'}
-        </div>
-      );
+    cell: ({ row }) => {
+      const category = row.getValue('category') as Entity['category'];
+      return <div>{category?.label || category?.name || 'No Category'}</div>;
     },
     enableColumnFilter: true,
     enableSorting: true,
@@ -81,13 +89,33 @@ export const createArticleColumnsFromConfig = (
     }
   },
   {
-    accessorKey: 'created_at',
-    header: ({ column }: { column: Column<Article, unknown> }) => (
+    id: 'tags',
+    accessorKey: 'tags',
+    header: 'Tags',
+    cell: ({ row }) => {
+      const tags = row.getValue('tags') as Entity['tags'];
+      return (
+        <div className='flex flex-wrap gap-1'>
+          {tags?.map((tag) => (
+            <span
+              key={tag.id}
+              className='bg-secondary rounded-md px-2 py-1 text-xs'
+            >
+              {tag.name}
+            </span>
+          )) || 'No Tags'}
+        </div>
+      );
+    }
+  },
+  {
+    accessorKey: 'createdAt',
+    header: ({ column }: { column: Column<Entity, unknown> }) => (
       <DataTableColumnHeader column={column} title='Created At' />
     ),
     enableSorting: true,
     cell: ({ row }) => {
-      const createdAt = row.getValue('created_at');
+      const createdAt = row.getValue('createdAt');
       return (
         <div>
           {createdAt
@@ -115,7 +143,7 @@ export const createArticleColumnsFromConfig = (
 // Dynamic columns function that accepts categories (backward compatibility)
 export const createArticleColumns = (
   categoryOptions: Array<{ value: string; label: string }> = []
-): ColumnDef<Article>[] => {
+): ColumnDef<Entity>[] => {
   const config = createArticleColumnsConfig(categoryOptions);
   return createArticleColumnsFromConfig(config);
 };
