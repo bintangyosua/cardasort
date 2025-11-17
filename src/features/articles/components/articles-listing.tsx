@@ -3,8 +3,9 @@ import { createArticleColumnsConfig } from '@/lib/columns/article-columns';
 import { ArticlesTable } from './articles-tables';
 
 import type { Article } from '@/constants/mock-api';
-import { ArticlesServerService } from '@/lib/api/articles.server.service';
-import { ArticleCategoriesServerService } from '@/lib/api/articles-categories.server.service';
+import { EntitiesServerService } from '@/lib/api/articles.server.service';
+import { EntityCategoriesServerService } from '@/lib/api/articles-categories.server.service';
+import { Entity } from 'prisma/generated/prisma/client';
 
 type ArticlesListingPageProps = {};
 
@@ -26,24 +27,26 @@ export default async function ArticlesListingPage({}: ArticlesListingPageProps) 
   };
 
   const categoryResponse =
-    await ArticleCategoriesServerService.getAdminArticleCategories({});
+    await EntityCategoriesServerService.getAdminCategories({});
 
   // Format categories for column options
   let categoryOptions: Array<{ value: string; label: string }> = [];
 
   if (categoryResponse.success && categoryResponse.data) {
-    // The backend returns categories array directly, not wrapped in { categories: [...] }
+    // The backend returns categories array directly
     const categories = Array.isArray(categoryResponse.data)
       ? categoryResponse.data
-      : categoryResponse.data.categories || categoryResponse.data;
+      : [];
 
     if (Array.isArray(categories)) {
       categoryOptions = categories.map((category: any) => ({
         value:
           category.slug || category.name || category.id || String(category),
-        label: category.name
-          ? category.name.charAt(0).toUpperCase() + category.name.slice(1)
-          : category.slug || category.id || String(category)
+        label:
+          category.label || category.name
+            ? (category.label || category.name).charAt(0).toUpperCase() +
+              (category.label || category.name).slice(1)
+            : category.slug || category.id || String(category)
       }));
     }
   }
@@ -51,9 +54,9 @@ export default async function ArticlesListingPage({}: ArticlesListingPageProps) 
   // Create server-safe column config (no client components)
   const columnsConfig = createArticleColumnsConfig(categoryOptions);
 
-  const data = await ArticlesServerService.getAdminArticles(filters);
-  const totalArticles = data.data.total_articles;
-  const articles: Article[] = data.data.articles;
+  const data = await EntitiesServerService.getAdminEntities(filters);
+  const totalArticles = data.data.total_entities;
+  const articles = data.data.entities;
 
   return (
     <ArticlesTable

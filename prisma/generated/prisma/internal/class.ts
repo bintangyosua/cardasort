@@ -46,6 +46,7 @@ const config: runtime.GetPrismaClientConfig = {
     "db"
   ],
   "activeProvider": "postgresql",
+  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
@@ -56,7 +57,7 @@ const config: runtime.GetPrismaClientConfig = {
   },
   "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client\"\n  output   = \"./generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel EntityCategory {\n  id    Int     @id @default(autoincrement())\n  name  String  @unique // contoh: \"ACTRESS\", \"ACTOR\", \"CARTOON\"\n  label String? // contoh: \"Actress\", \"Actor\", \"Cartoon\" (optional buat display)\n\n  entities Entity[]\n}\n\nmodel Entity {\n  id       Int     @id @default(autoincrement())\n  name     String\n  imageUrl String?\n\n  // relasi ke category (wajib 1 kategori)\n  categoryId Int\n  category   EntityCategory @relation(fields: [categoryId], references: [id])\n\n  // relasi many-to-many ke Tag\n  tags Tag[]\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n}\n\nmodel Tag {\n  id   Int    @id @default(autoincrement())\n  name String @unique // \"blonde\", \"cute\", \"ugly\", dst\n\n  entities Entity[] // many-to-many balik ke Entity\n}\n",
   "inlineSchemaHash": "506f8f6a6f098426044d4fad3135fe2b5fac5dcff5f185b3c35c0947d1dddcba",
-  "copyEngine": false,
+  "copyEngine": true,
   "runtimeDataModel": {
     "models": {},
     "enums": {},

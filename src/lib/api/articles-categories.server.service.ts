@@ -1,73 +1,114 @@
-import { getIronSession } from 'iron-session';
-import { cookies } from 'next/headers';
-import { SessionData, sessionOptions } from '../session';
-import api from '../axios';
+import { prisma } from '../prisma';
 
-export class ArticleCategoriesServerService {
-  private static async getAuthenticatedRequest() {
-    const session = await getIronSession<SessionData>(
-      await cookies(),
-      sessionOptions
-    );
-
-    if (!session.isLoggedIn || !session.access_token) {
-      throw new Error('Not authenticated');
-    }
-
-    return {
-      headers: {
-        Authorization: `Bearer ${session.access_token}`
-      }
-    };
-  }
-
-  static async getArticleCategoryById(id: number) {
+export class EntityCategoriesServerService {
+  static async getCategoryById(id: number) {
     try {
-      const authConfig = await this.getAuthenticatedRequest();
-      const response = await api.get(`/articles/categories/${id}`, authConfig);
+      const category = await prisma.entityCategory.findUnique({
+        where: { id },
+        include: {
+          entities: true
+        }
+      });
+
+      if (!category) {
+        return {
+          success: false,
+          error: 'Category not found'
+        };
+      }
+
       return {
         success: true,
-        data: response.data
+        data: category
       };
     } catch (error) {
-      console.error('Error fetching article category:', error);
+      console.error('Error fetching category:', error);
       return {
         success: false,
         error:
-          error instanceof Error
-            ? error.message
-            : 'Failed to fetch article category'
+          error instanceof Error ? error.message : 'Failed to fetch category'
       };
     }
   }
 
-  static async getAdminArticleCategories(filters: {
+  static async getAdminCategories(filters: {
     page?: number;
     limit?: number;
-    roles?: string;
-    actives?: string;
     search?: string;
     sort?: string;
   }) {
     try {
-      const authConfig = await this.getAuthenticatedRequest();
-      const response = await api.get('/articles/categories', {
-        params: filters,
-        ...authConfig
-      });
+      const page = filters.page || 1;
+      const limit = filters.limit || 100; // Default higher for categories
+      const skip = (page - 1) * limit;
+
+      // Build where clause
+      const where: any = {};
+
+      // Search filter
+      if (filters.search) {
+        where.OR = [
+          {
+            name: {
+              contains: filters.search,
+              mode: 'insensitive'
+            }
+          },
+          {
+            label: {
+              contains: filters.search,
+              mode: 'insensitive'
+            }
+          }
+        ];
+      }
+
+      // Build orderBy clause
+      let orderBy: any = { name: 'asc' };
+      if (filters.sort) {
+        try {
+          const sortParams = JSON.parse(filters.sort);
+          if (Array.isArray(sortParams) && sortParams.length > 0) {
+            const { id, desc } = sortParams[0];
+            if (id === 'name') {
+              orderBy = { name: desc ? 'desc' : 'asc' };
+            }
+          }
+        } catch (e) {
+          // Invalid sort, use default
+        }
+      }
+
+      // Execute queries
+      const [categories, totalCategories] = await Promise.all([
+        prisma.entityCategory.findMany({
+          where,
+          include: {
+            _count: {
+              select: { entities: true }
+            }
+          },
+          orderBy,
+          skip,
+          take: limit
+        }),
+        prisma.entityCategory.count({ where })
+      ]);
 
       return {
         success: true,
-        data: response.data
+        data: categories.map((cat: any) => ({
+          id: cat.id,
+          name: cat.name,
+          label: cat.label,
+          slug: cat.name.toLowerCase().replace(/\s+/g, '-')
+        }))
       };
     } catch (error: any) {
       return {
         success: false,
-        error: error.message || 'Failed to fetch article categories',
-        data: {
-          categories: [],
-          total_categories: 0
-        }
+        error: error.message || 'Failed to fetch categories',
+        data: []
       };
     }
   }

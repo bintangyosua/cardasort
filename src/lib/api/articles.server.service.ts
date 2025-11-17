@@ -1,47 +1,37 @@
-import { getIronSession } from 'iron-session';
-import { cookies } from 'next/headers';
-import { SessionData, sessionOptions } from '../session';
-import api from '../axios';
+import { prisma } from '../prisma';
 
-export class ArticlesServerService {
-  private static async getAuthenticatedRequest() {
-    const session = await getIronSession<SessionData>(
-      await cookies(),
-      sessionOptions
-    );
-
-    if (!session.isLoggedIn || !session.access_token) {
-      throw new Error('Not authenticated');
-    }
-
-    return {
-      headers: {
-        Authorization: `Bearer ${session.access_token}`
-      }
-    };
-  }
-
+export class EntitiesServerService {
   static async getById(id: number) {
     try {
-      const authConfig = await this.getAuthenticatedRequest();
-      const response = await api.get(`/articles/${id}`, authConfig);
+      const entity = await prisma.entity.findUnique({
+        where: { id },
+        include: {
+          category: true,
+          tags: true
+        }
+      });
+
+      if (!entity) {
+        return {
+          success: false,
+          error: 'Entity not found'
+        };
+      }
+
       return {
         success: true,
-        data: response.data
+        data: entity
       };
     } catch (error) {
-      console.error('Error fetching article:', error);
+      console.error('Error fetching entity:', error);
       return {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Failed to fetch article category'
+        error: error instanceof Error ? error.message : 'Failed to fetch entity'
       };
     }
   }
 
-  static async getAdminArticles(filters: {
+  static async getAdminEntities(filters: {
     page?: number;
     limit?: number;
     scope?: string;
@@ -50,25 +40,81 @@ export class ArticlesServerService {
     sort?: string;
   }) {
     try {
-      const authConfig = await this.getAuthenticatedRequest();
+      const page = filters.page || 1;
+      const limit = filters.limit || 10;
+      const skip = (page - 1) * limit;
 
-      const response = await api.get('/articles/search', {
-        params: filters,
-        ...authConfig
-      });
+      // Build where clause
+      const where: any = {};
+
+      // Search filter
+      if (filters.search) {
+        where.name = {
+          contains: filters.search,
+          mode: 'insensitive'
+        };
+      }
+
+      // Categories filter
+      if (filters.categories) {
+        const categoryNames = filters.categories.split('.');
+        where.category = {
+          name: {
+            in: categoryNames
+          }
+        };
+      }
+
+      // Build orderBy clause
+      let orderBy: any = { createdAt: 'desc' };
+      if (filters.sort) {
+        try {
+          const sortParams = JSON.parse(filters.sort);
+          if (Array.isArray(sortParams) && sortParams.length > 0) {
+            const { id, desc } = sortParams[0];
+            if (id === 'name') {
+              orderBy = { name: desc ? 'desc' : 'asc' };
+            } else if (id === 'category') {
+              orderBy = { category: { name: desc ? 'desc' : 'asc' } };
+            } else if (id === 'createdAt' || id === 'created_at') {
+              orderBy = { createdAt: desc ? 'desc' : 'asc' };
+            }
+          }
+        } catch (e) {
+          // Invalid sort, use default
+        }
+      }
+
+      // Execute queries
+      const [entities, totalEntities] = await Promise.all([
+        prisma.entity.findMany({
+          where,
+          include: {
+            category: true,
+            tags: true
+          },
+          orderBy,
+          skip,
+          take: limit
+        }),
+        prisma.entity.count({ where })
+      ]);
 
       return {
         success: true,
-        data: response.data
+        data: {
+          entities,
+          total_entities: totalEntities
+        }
       };
     } catch (error: any) {
-      console.error('Failed to fetch users:', error);
+      console.error('Failed to fetch entities:', error);
       return {
         success: false,
-        error: error.message || 'Failed to fetch users',
+        error: error.message || 'Failed to fetch entities',
         data: {
-          users: [],
-          total_users: 0
+          entities: [],
+          total_entities: 0
         }
       };
     }
