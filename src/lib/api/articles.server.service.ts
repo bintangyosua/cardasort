@@ -132,4 +132,108 @@ export class EntitiesServerService {
       };
     }
   }
+
+  static async createEntity(data: {
+    name: string;
+    categoryId: number;
+    imageUrl?: string;
+    tags?: number[];
+  }) {
+    try {
+      const entity = await prisma.entity.create({
+        data: {
+          name: data.name,
+          categoryId: data.categoryId,
+          imageUrl: data.imageUrl,
+          tags: data.tags
+            ? {
+                connect: data.tags.map((id) => ({ id }))
+              }
+            : undefined
+        },
+        include: {
+          category: true,
+          tags: true
+        }
+      });
+
+      return {
+        success: true,
+        data: entity
+      };
+    } catch (error) {
+      console.error('Error creating entity:', error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Failed to create entity'
+      };
+    }
+  }
+
+  static async updateEntity(
+    id: number,
+    data: {
+      name?: string;
+      categoryId?: number;
+      imageUrl?: string;
+      tags?: number[];
+    }
+  ) {
+    try {
+      // Build update data
+      const updateData: any = {};
+
+      if (data.name !== undefined) updateData.name = data.name;
+      if (data.categoryId !== undefined)
+        updateData.categoryId = data.categoryId;
+      if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl;
+
+      if (data.tags !== undefined) {
+        updateData.tags = {
+          set: data.tags.map((id) => ({ id }))
+        };
+      }
+
+      const entity = await prisma.entity.update({
+        where: { id },
+        data: updateData,
+        include: {
+          category: true,
+          tags: true
+        }
+      });
+
+      return {
+        success: true,
+        data: entity
+      };
+    } catch (error) {
+      console.error('Error updating entity:', error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Failed to update entity'
+      };
+    }
+  }
+
+  static async deleteEntity(id: number) {
+    try {
+      await prisma.entity.delete({
+        where: { id }
+      });
+
+      return {
+        success: true
+      };
+    } catch (error) {
+      console.error('Error deleting entity:', error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Failed to delete entity'
+      };
+    }
+  }
 }

@@ -26,6 +26,7 @@ import { Entity } from '@/types/entity';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useState } from 'react';
+import { articlesService } from '@/lib/api/articles.service';
 
 export default function ArticlesForm({
   initialData,
@@ -83,17 +84,18 @@ export default function ArticlesForm({
 
     try {
       if (initialData?.id) {
-        // TODO: Implement update API
-        // await entitiesService.update(initialData.id, data);
-        console.log('Update entity:', data);
+        console.log('Updating entity:', initialData.id, data);
+        await articlesService.update(initialData.id, data);
       } else {
-        // TODO: Implement create API
-        // await entitiesService.create(data);
-        console.log('Create entity:', data);
+        console.log('Creating entity:', data);
+        await articlesService.create(data);
       }
       router.push('/dashboard/articles');
-    } catch (error) {
+      router.refresh();
+    } catch (error: any) {
       console.error('Error saving entity:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
     }
   }
 

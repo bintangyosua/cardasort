@@ -5,59 +5,79 @@ export const articlesService = {
   getArticles: async ({
     page = 1,
     limit = 10,
-    roles,
-    actives,
     search,
+    category,
     sort
   }: {
     page?: number;
     limit?: number;
-    roles?: string;
-    actives?: string;
     search?: string;
+    category?: string;
     sort?: string;
   }) => {
-    const response = await api.get('/articles/search', {
+    const response = await api.get('/entities', {
       params: {
         page,
         limit,
-        roles,
-        actives,
         search,
+        category,
         sort
       }
     });
     return response.data;
   },
 
-  delete: async (id: number) => {
+  getById: async (id: number) => {
     try {
-      const response = await api.delete(`/articles/${id}`);
-      response.data;
-      toast.success('Article deleted successfully');
-    } catch (error) {
-      toast.error('Failed to delete article');
-    }
-  },
-
-  create: async (data: any) => {
-    try {
-      const response = await api.post('/articles', data);
-      toast.success('Article created successfully');
+      const response = await api.get(`/entities/${id}`);
       return response.data;
     } catch (error) {
-      toast.error('Failed to create article');
+      toast.error('Failed to fetch entity');
       throw error;
     }
   },
 
-  update: async (id: number, data: any) => {
+  create: async (data: {
+    name: string;
+    categoryId: number;
+    imageUrl: string;
+    tags: number[];
+  }) => {
     try {
-      const response = await api.patch(`/articles/${id}`, data);
-      toast.success('Article updated successfully');
+      const response = await api.post('/entities', data);
+      toast.success('Entity created successfully');
       return response.data;
     } catch (error) {
-      toast.error('Failed to update article');
+      toast.error('Failed to create entity');
+      throw error;
+    }
+  },
+
+  update: async (
+    id: number,
+    data: {
+      name?: string;
+      categoryId?: number;
+      imageUrl?: string;
+      tags?: number[];
+    }
+  ) => {
+    try {
+      const response = await api.patch(`/entities/${id}`, data);
+      toast.success('Entity updated successfully');
+      return response.data;
+    } catch (error) {
+      toast.error('Failed to update entity');
+      throw error;
+    }
+  },
+
+  delete: async (id: number) => {
+    try {
+      await api.delete(`/entities/${id}`);
+      toast.success('Entity deleted successfully');
+    } catch (error) {
+      toast.error('Failed to delete entity');
       throw error;
     }
   }
