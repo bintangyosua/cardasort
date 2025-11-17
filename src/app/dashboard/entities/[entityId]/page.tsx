@@ -7,7 +7,7 @@ export const metadata = {
   title: 'Dashboard : Entity View'
 };
 
-type PageProps = { params: Promise<{ articleId: string }> };
+type PageProps = { params: Promise<{ entityId: string }> };
 
 export default async function Page(props: PageProps) {
   const params = await props.params;
@@ -15,7 +15,7 @@ export default async function Page(props: PageProps) {
     <PageContainer scrollable>
       <div className='flex-1 space-y-4'>
         <Suspense fallback={<FormCardSkeleton />}>
-          <EntitiesViewPage articleId={params.articleId} />
+          <EntitiesViewPage entityId={params.entityId} />
         </Suspense>
       </div>
     </PageContainer>

@@ -1,6 +1,6 @@
 import FormCardSkeleton from '@/components/form-card-skeleton';
 import PageContainer from '@/components/layout/page-container';
-import EntityCategoriesViewPage from '@/features/article-categories/components/entity-categories-view-page';
+import EntityCategoriesViewPage from '@/features/entity-categories/components/entity-categories-view-page';
 import { Suspense } from 'react';
 
 export const metadata = {

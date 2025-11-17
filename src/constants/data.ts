@@ -22,23 +22,29 @@ export const navItems: NavItem[] = [
     items: [] // Empty array as there are no child items for Dashboard
   },
   {
-    title: 'Articles',
+    title: 'Entities',
     url: '#',
     icon: 'post',
     shortcut: ['a', 'a'],
     isActive: true,
     items: [
       {
-        title: 'Education Articles',
-        url: '/dashboard/articles',
+        title: 'Entities List',
+        url: '/dashboard/entities',
         icon: 'post',
         shortcut: ['e', 'a']
       },
       {
-        title: 'Article Categories',
-        url: '/dashboard/article-categories',
+        title: 'Entity Categories',
+        url: '/dashboard/entity-categories',
         icon: 'post',
-        shortcut: ['a', 'c']
+        shortcut: ['e', 'c']
+      },
+      {
+        title: 'Entity Tags',
+        url: '/dashboard/entity-tags',
+        icon: 'post',
+        shortcut: ['e', 't']
       }
     ]
   },

@@ -6,18 +6,18 @@ import { EntitiesServerService } from '@/lib/api/entities.server.service';
 import { EntityCategoriesServerService } from '@/lib/api/entities-categories.server.service';
 
 type TEntityViewPageProps = {
-  articleId: string;
+  entityId: string;
 };
 
 export default async function EntitiesViewPage({
-  articleId
+  entityId
 }: TEntityViewPageProps) {
   let entity = null;
   let pageTitle = 'Create New Entity';
 
-  if (articleId !== 'new') {
+  if (entityId !== 'new') {
     try {
-      const data = await EntitiesServerService.getById(Number(articleId));
+      const data = await EntitiesServerService.getById(Number(entityId));
 
       if (data.success && data.data) {
         entity = data.data;

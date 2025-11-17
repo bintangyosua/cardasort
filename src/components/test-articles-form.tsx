@@ -15,7 +15,7 @@ export default function TestEntitiesForm() {
     images: [
       {
         id: 7,
-        articleId: 11,
+        entityId: 11,
         url: '/uploads/entities/1755534057665-iw1u6rf48y.png',
         storageKey: 'uploads/entities/1755534057665-iw1u6rf48y.png',
         alt: 'Sarah',
