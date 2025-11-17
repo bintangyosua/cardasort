@@ -14,28 +14,30 @@ import { Input } from '@/components/ui/input';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { ArticleCategory } from '@/constants/mock-api';
+import { EntityCategory } from '@/types/entity';
 import { articleCategoriesService } from '@/lib/api/article-categories.service';
 import { useReactTable } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
   name: z.string().min(2, {
-    message: 'Article Category name must be at least 2 characters.'
-  })
+    message: 'Entity Category name must be at least 2 characters.'
+  }),
+  label: z.string().optional()
 });
 
 export default function ArticleCategoriesForm({
   initialData,
   pageTitle
 }: {
-  initialData: ArticleCategory | null;
+  initialData: EntityCategory | null;
   pageTitle: string;
 }) {
   const router = useRouter();
 
   const defaultValues = {
-    name: initialData?.name || ''
+    name: initialData?.name || '',
+    label: initialData?.label || ''
   };
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -44,8 +46,8 @@ export default function ArticleCategoriesForm({
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    // Add timestamps for new ArticleCategories
-    const articleData = {
+    // Add data for new EntityCategories
+    const categoryData = {
       ...values
     };
 
@@ -53,13 +55,13 @@ export default function ArticleCategoriesForm({
       if (initialData?.id) {
         const result = await articleCategoriesService.update(
           initialData.id,
-          articleData
+          categoryData
         );
       } else {
-        const result = await articleCategoriesService.create(articleData);
+        const result = await articleCategoriesService.create(categoryData);
       }
 
-      // Redirect to article categories list page
+      // Redirect to entity categories list page
       router.push('/dashboard/article-categories');
     } catch (error) {
       // You can add error handling here (toast notification, etc)
@@ -81,10 +83,26 @@ export default function ArticleCategoriesForm({
               name='name'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Article Category Name</FormLabel>
+                  <FormLabel>Entity Category Name</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder='Enter article category name'
+                      placeholder='Enter entity category name (e.g., ACTRESS, ACTOR)'
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='label'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Display Label (Optional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder='Enter display label (e.g., Actress, Actor)'
                       {...field}
                     />
                   </FormControl>
@@ -93,7 +111,9 @@ export default function ArticleCategoriesForm({
               )}
             />
             <Button type='submit' className='w-full'>
-              {initialData ? 'Update Article' : 'Create Article'}
+              {initialData
+                ? 'Update Entity Category'
+                : 'Create Entity Category'}
             </Button>
           </form>
         </Form>

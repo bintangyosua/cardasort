@@ -97,18 +97,82 @@ export class EntityCategoriesServerService {
 
       return {
         success: true,
-        data: categories.map((cat: any) => ({
-          id: cat.id,
-          name: cat.name,
-          label: cat.label,
-          slug: cat.name.toLowerCase().replace(/\s+/g, '-')
-        }))
+        data: categories
       };
     } catch (error: any) {
       return {
         success: false,
         error: error.message || 'Failed to fetch categories',
         data: []
+      };
+    }
+  }
+
+  static async createCategory(data: { name: string; label?: string }) {
+    try {
+      const category = await prisma.entityCategory.create({
+        data: {
+          name: data.name,
+          label: data.label
+        }
+      });
+
+      return {
+        success: true,
+        data: category
+      };
+    } catch (error) {
+      console.error('Error creating category:', error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Failed to create category'
+      };
+    }
+  }
+
+  static async updateCategory(
+    id: number,
+    data: { name?: string; label?: string }
+  ) {
+    try {
+      const category = await prisma.entityCategory.update({
+        where: { id },
+        data: {
+          ...(data.name && { name: data.name }),
+          ...(data.label !== undefined && { label: data.label })
+        }
+      });
+
+      return {
+        success: true,
+        data: category
+      };
+    } catch (error) {
+      console.error('Error updating category:', error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Failed to update category'
+      };
+    }
+  }
+
+  static async deleteCategory(id: number) {
+    try {
+      await prisma.entityCategory.delete({
+        where: { id }
+      });
+
+      return {
+        success: true
+      };
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Failed to delete category'
       };
     }
   }

@@ -8,14 +8,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { ArticleCategory } from '@/constants/mock-api';
+import { EntityCategory } from '@/types/entity';
 import { articleCategoriesService } from '@/lib/api/article-categories.service';
 import { IconEdit, IconDotsVertical, IconTrash } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 interface CellActionProps {
-  data: ArticleCategory;
+  data: EntityCategory;
 }
 
 export const CellAction: React.FC<CellActionProps> = ({ data }) => {

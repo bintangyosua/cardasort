@@ -1,43 +1,40 @@
-import {
-  ArticleCategory,
-  fakeArticleCategories
-} from '@/constants/mock-api/article-categories';
+import { EntityCategory } from '@/types/entity';
 import { notFound } from 'next/navigation';
 import ArticleCategoriesForm from './article-categories-form';
 import { articleCategoriesService } from '@/lib/api/article-categories.service';
 import { EntityCategoriesServerService } from '@/lib/api/articles-categories.server.service';
 
-type TArticleCategoryViewPageProps = {
-  articleCategoryId: number | string;
+type TEntityCategoryViewPageProps = {
+  entityCategoryId: number | string;
 };
 
 export default async function ArticleCategoriesViewPage({
-  articleCategoryId
-}: TArticleCategoryViewPageProps) {
-  let articleCategory = null;
-  let pageTitle = 'Create New Article';
+  entityCategoryId
+}: TEntityCategoryViewPageProps) {
+  let entityCategory = null;
+  let pageTitle = 'Create New Entity Category';
 
-  if (articleCategoryId !== 'new') {
+  if (entityCategoryId !== 'new') {
     try {
       const data = await EntityCategoriesServerService.getCategoryById(
-        Number(articleCategoryId)
+        Number(entityCategoryId)
       );
 
       if (data.success && data.data) {
-        articleCategory = data.data as ArticleCategory;
-        pageTitle = `Edit Article`;
+        entityCategory = data.data as EntityCategory;
+        pageTitle = `Edit Entity Category`;
       } else {
         notFound();
       }
     } catch (error) {
-      console.error('Error fetching article:', error);
+      console.error('Error fetching entity category:', error);
       notFound();
     }
   }
 
   return (
     <ArticleCategoriesForm
-      initialData={articleCategory}
+      initialData={entityCategory}
       pageTitle={pageTitle}
     />
   );
