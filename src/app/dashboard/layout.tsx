@@ -10,6 +10,8 @@ export const metadata: Metadata = {
   description: 'Basic dashboard with Next.js and Shadcn'
 };
 
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardLayout({
   children
 }: {

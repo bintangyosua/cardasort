@@ -3,6 +3,9 @@ import { withSentryConfig } from '@sentry/nextjs';
 
 // Define the base Next.js configuration
 const baseConfig: NextConfig = {
+  experimental: {
+    clientTraceMetadata: ['experimental-edge', 'experimental-turbo']
+  },
   images: {
     remotePatterns: [
       {
@@ -41,14 +44,14 @@ const baseConfig: NextConfig = {
         '**/My Documents/**'
       ]
     };
-    
+
     // Also configure snapshot options to avoid scanning these directories
     config.snapshot = {
       ...config.snapshot,
       managedPaths: [/^(.+?[\\/]node_modules[\\/])/],
       immutablePaths: []
     };
-    
+
     return config;
   }
 };

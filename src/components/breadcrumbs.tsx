@@ -11,6 +11,11 @@ import { useBreadcrumbs } from '@/hooks/use-breadcrumbs';
 import { IconSlash } from '@tabler/icons-react';
 import { Fragment } from 'react';
 
+type BreadcrumbItem = {
+  title: string;
+  link: string;
+};
+
 export function Breadcrumbs() {
   const items = useBreadcrumbs();
   if (items.length === 0) return null;
@@ -18,7 +23,7 @@ export function Breadcrumbs() {
   return (
     <Breadcrumb>
       <BreadcrumbList>
-        {items.map((item, index) => (
+        {items.map((item: BreadcrumbItem, index: number) => (
           <Fragment key={item.title}>
             {index !== items.length - 1 && (
               <BreadcrumbItem className='hidden md:block'>
