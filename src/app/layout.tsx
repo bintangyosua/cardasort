@@ -16,8 +16,9 @@ const META_THEME_COLORS = {
 };
 
 export const metadata: Metadata = {
-  title: 'Next Shadcn',
-  description: 'Basic dashboard with Next.js and Shadcn'
+  title: 'CardaSort',
+  description:
+    'CardaSort is a pairwise comparison ranking platform that lets users sort items by choosing winners between card-style matchups while the system intelligently infers the rest using a transitive graph.'
 };
 
 export const viewport: Viewport = {

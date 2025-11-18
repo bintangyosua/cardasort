@@ -6,8 +6,8 @@ import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 
 export const metadata: Metadata = {
-  title: 'Next Shadcn Dashboard Starter',
-  description: 'Basic dashboard with Next.js and Shadcn'
+  title: 'CardaSort Dashboard',
+  description: 'Basic CardaSort Dashboard for managing data'
 };
 
 export const dynamic = 'force-dynamic';
