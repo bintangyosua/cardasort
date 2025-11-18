@@ -210,9 +210,9 @@ export function SortingPageClient() {
     <main className='flex flex-col items-center p-8'>
       <div className='w-full max-w-6xl space-y-6'>
         <div className='space-y-2 text-center'>
-          <Link href='/'>
-            <h1 className='text-4xl font-bold tracking-tight'>CardaSort</h1>
-          </Link>
+          <h1 className='text-4xl font-bold tracking-tight'>
+            <Link href='/'>CardaSort</Link>
+          </h1>
           <p className='text-muted-foreground'>
             Compare and choose your preference
           </p>
