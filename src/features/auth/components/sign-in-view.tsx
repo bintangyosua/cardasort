@@ -57,7 +57,7 @@ export default function SignInViewPage() {
         <div className='flex w-full max-w-md flex-col items-center justify-center space-y-6'>
           <div className='flex flex-col space-y-2 text-center'>
             <h1 className='text-2xl font-semibold tracking-tight'>
-              Sign in to Glucoheart Dashboard
+              Sign in to CardaSort Dashboard
             </h1>
             <p className='text-muted-foreground text-sm'>
               Welcome back! Please sign in to continue

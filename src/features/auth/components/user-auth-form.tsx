@@ -57,9 +57,24 @@ export default function UserAuthForm() {
 
     startTransition(async () => {
       try {
-        const result = await authService.signIn(data.email, data.password);
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: data.email,
+            password: data.password,
+          }),
+        });
 
-        toast.success(`Welcome back, ${result.user.firstName}!`);
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || 'Login failed');
+        }
+
+        toast.success('Welcome back!');
 
         // Redirect to dashboard or callback URL
         router.push(callbackUrl);
@@ -67,22 +82,12 @@ export default function UserAuthForm() {
       } catch (err: any) {
         console.error('Login error:', err);
 
-        // Handle validation errors for specific fields
-        if (err.errors && Array.isArray(err.errors)) {
-          const newFieldErrors: Record<string, string> = {};
-          err.errors.forEach((error: any) => {
-            if (error.field) {
-              newFieldErrors[error.field] = error.message;
-            }
-          });
-          setFieldErrors(newFieldErrors);
-        }
-
         // Set general error message
-        setError(err.error || 'Login failed. Please try again.');
+        const errorMessage = err.message || 'Login failed. Please try again.';
+        setError(errorMessage);
 
         // Show toast for immediate feedback
-        toast.error(err.error || 'Login failed. Please try again.');
+        toast.error(errorMessage);
       }
     });
   };

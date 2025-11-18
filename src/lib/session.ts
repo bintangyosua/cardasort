@@ -1,5 +1,7 @@
 import { config } from '@/config/env';
 import { SessionOptions } from 'iron-session';
+import { getIronSession } from 'iron-session';
+import { cookies } from 'next/headers';
 
 export interface SessionData {
   access_token?: string;
@@ -24,8 +26,8 @@ const useHTTPS = config.USE_HTTPS === 'true';
 const isVPSWithHTTP = isProduction && !useHTTPS;
 
 export const sessionOptions: SessionOptions = {
-  password: config.SESSION_SECRET || '',
-  cookieName: 'glucoheart-session',
+  password: config.SESSION_SECRET || 'complex_password_at_least_32_characters_long_for_security_purposes',
+  cookieName: 'cardasort-session',
   cookieOptions: {
     // Hanya secure jika production dan menggunakan HTTPS
     secure: isProduction && useHTTPS,
@@ -40,3 +42,26 @@ export const sessionOptions: SessionOptions = {
     })
   }
 };
+
+export async function getSession() {
+  const cookieStore = await cookies();
+  return getIronSession<SessionData>(cookieStore, sessionOptions);
+}
+
+export async function createSession(email: string) {
+  const session = await getSession();
+  session.isLoggedIn = true;
+  session.user = {
+    id: 1,
+    email,
+    firstName: 'Admin',
+    lastName: 'User',
+    role: 'admin'
+  };
+  await session.save();
+}
+
+export async function destroySession() {
+  const session = await getSession();
+  session.destroy();
+}
