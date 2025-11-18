@@ -39,6 +39,7 @@ export default async function RootLayout({
   return (
     <html lang='en' suppressHydrationWarning>
       <head>
+        <link rel='icon' href='/favicon-cat.ico' sizes='any' />
         <script
           dangerouslySetInnerHTML={{
             __html: `
