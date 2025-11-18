@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 
+const ENABLE_AUTH = process.env.NEXT_PUBLIC_ENABLE_AUTH === 'true';
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // If auth is disabled, allow all requests
+  if (!ENABLE_AUTH) {
+    return NextResponse.next();
+  }
 
   // Check if the path is under /dashboard
   if (pathname.startsWith('/dashboard')) {

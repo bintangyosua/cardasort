@@ -4,6 +4,7 @@ export const config = {
   NEXT_PUBLIC_BACKEND_URL: process.env.NEXT_PUBLIC_BACKEND_URL,
   NEXT_PUBLIC_SIGN_IN_URL: process.env.NEXT_PUBLIC_SIGN_IN_URL,
   NEXT_PUBLIC_AFTER_SIGN_IN_URL: process.env.NEXT_PUBLIC_AFTER_SIGN_IN_URL,
+  ENABLE_AUTH: process.env.NEXT_PUBLIC_ENABLE_AUTH === 'true',
 
   NODE_ENV: process.env.NODE_ENV,
   USE_HTTPS: process.env.USE_HTTPS
