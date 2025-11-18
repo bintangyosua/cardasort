@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { SelectionForm } from './selection-form';
 import { SortingView } from './sorting-view';
-import { SorterState } from '../lib/sorter';
+import { SorterState } from '../lib/sorter-new';
 
 interface HomePageClientProps {
   categories: any[];

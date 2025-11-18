@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import axios from '@/lib/axios';
-import { Entity, initializeSorter, SorterState } from '../lib/sorter';
+import { Entity, initializeSorter, SorterState } from '../lib/sorter-new';
 
 interface EntityCategory {
   id: number;

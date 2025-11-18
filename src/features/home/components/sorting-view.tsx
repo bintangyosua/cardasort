@@ -1,7 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { SorterState, handleLeft, handleTie, handleRight } from '../lib/sorter';
+import {
+  SorterState,
+  handleLeft,
+  handleTie,
+  handleRight
+} from '../lib/sorter-new';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +18,16 @@ interface SortingViewProps {
 export function SortingView({ sorterState: initialState }: SortingViewProps) {
   const [state, setState] = useState(initialState);
 
-  const { leftEntity, rightEntity, ranking, isFinished, round, pairIndex, currentPairs, rankedEntities } = state;
+  const {
+    leftEntity,
+    rightEntity,
+    ranking,
+    isFinished,
+    round,
+    remainingPairs,
+    graph,
+    allEntities
+  } = state;
 
   const onLeft = () => {
     setState(handleLeft(state));
@@ -117,16 +131,29 @@ export function SortingView({ sorterState: initialState }: SortingViewProps) {
         <CardContent className='pt-6'>
           <div className='flex items-center justify-between text-sm'>
             <div className='text-muted-foreground'>
-              Round: <span className='font-semibold'>{round}</span>
+              Comparisons: <span className='font-semibold'>{round}</span>
             </div>
             <div className='text-muted-foreground'>
-              Match: <span className='font-semibold'>{pairIndex + 1} / {currentPairs.length}</span>
+              Remaining:{' '}
+              <span className='font-semibold'>{remainingPairs.length}</span>
             </div>
             <div className='text-muted-foreground'>
-              Ranked: <span className='font-semibold'>{rankedEntities.reduce((sum, group) => sum + group.length, 0)}</span>
+              Total Pairs:{' '}
+              <span className='font-semibold'>
+                {(allEntities.length * (allEntities.length - 1)) / 2}
+              </span>
             </div>
             <div className='text-muted-foreground'>
-              Remaining: <span className='font-semibold'>{state.currentBatch.length}</span>
+              Progress:{' '}
+              <span className='font-semibold'>
+                {Math.round(
+                  (1 -
+                    remainingPairs.length /
+                      ((allEntities.length * (allEntities.length - 1)) / 2)) *
+                    100
+                )}
+                %
+              </span>
             </div>
           </div>
         </CardContent>
