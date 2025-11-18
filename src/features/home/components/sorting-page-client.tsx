@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   SorterState,
@@ -62,11 +62,14 @@ export function SortingPageClient() {
   const [state, setState] = useState<SorterState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const hasLoadedRef = useRef(false);
 
-  // Load state from URL
+  // Load state from URL ONCE on mount
   useEffect(() => {
+    // Prevent re-loading if already loaded
+    if (hasLoadedRef.current) return;
+    
     const loadState = async () => {
       const urlState = searchParams?.get('state');
 
@@ -122,7 +125,7 @@ export function SortingPageClient() {
             isFinished: false
           });
           setIsLoading(false);
-          setIsInitialLoad(false);
+          hasLoadedRef.current = true;
         } else {
           setError('Failed to fetch entities');
           setIsLoading(false);
@@ -135,11 +138,11 @@ export function SortingPageClient() {
     };
 
     loadState();
-  }, [searchParams, router]);
+  }, []); // Empty deps - only run once on mount
 
-  // Update URL when state changes (but not on initial load)
+  // Update URL when state changes
   useEffect(() => {
-    if (!state || isInitialLoad) return;
+    if (!state || !hasLoadedRef.current) return;
 
     const encoded = encodeStateToUrl(state);
 
@@ -153,7 +156,7 @@ export function SortingPageClient() {
     } else {
       router.replace(`/sort?state=${encoded}`, { scroll: false });
     }
-  }, [state, router, isInitialLoad]);
+  }, [state, router]);
 
   const onLeft = () => {
     if (state) setState(handleLeft(state));
