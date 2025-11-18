@@ -55,25 +55,32 @@ function generateAllPairs(
 }
 
 /**
- * Apply transitive closure to infer relationships
- * If A beats B and B beats C, then A beats C
+ * Apply incremental transitive closure
+ * Only propagate from the new edge (winner beats loser)
+ * More efficient than full Floyd-Warshall
  */
-function applyTransitiveClosure(graph: Map<number, Set<number>>): void {
-  const ids = Array.from(graph.keys());
-
-  // Floyd-Warshall for transitive closure
-  for (const k of ids) {
-    for (const i of ids) {
-      if (graph.get(i)?.has(k)) {
-        const kBeats = graph.get(k);
-        if (kBeats) {
-          const kBeatsArray = Array.from(kBeats);
-          for (const j of kBeatsArray) {
-            graph.get(i)?.add(j);
-          }
-        }
+function applyIncrementalTransitiveClosure(
+  graph: Map<number, Set<number>>,
+  winner: number,
+  loser: number
+): void {
+  // Everyone who beats winner also beats loser
+  graph.forEach((beats, entity) => {
+    if (beats.has(winner)) {
+      beats.add(loser);
+      // Also add everything loser beats
+      const loserBeats = graph.get(loser);
+      if (loserBeats) {
+        Array.from(loserBeats).forEach(id => beats.add(id));
       }
     }
+  });
+
+  // Winner also beats everyone that loser beats
+  const winnerBeats = graph.get(winner);
+  const loserBeats = graph.get(loser);
+  if (winnerBeats && loserBeats) {
+    Array.from(loserBeats).forEach(id => winnerBeats.add(id));
   }
 }
 
@@ -140,7 +147,7 @@ export function initializeSorter(entities: Entity[]): SorterState {
 }
 
 /**
- * Handle comparison and update graph
+ * Handle comparison and update graph with optimizations
  */
 function handleComparison(
   state: SorterState,
@@ -149,15 +156,34 @@ function handleComparison(
 ): SorterState {
   // Update graph: winner beats loser
   const newGraph = new Map(state.graph);
+  // Deep copy sets
+  newGraph.forEach((set, key) => {
+    newGraph.set(key, new Set(set));
+  });
+  
   newGraph.get(winner.id)?.add(loser.id);
 
-  // Apply transitive closure to infer more relationships
-  applyTransitiveClosure(newGraph);
+  // Apply incremental transitive closure (more efficient than full Floyd-Warshall)
+  applyIncrementalTransitiveClosure(newGraph, winner.id, loser.id);
 
-  // Filter remaining pairs - skip pairs that can be inferred
-  const newRemainingPairs = state.remainingPairs.slice(1).filter((pair) => {
-    return !canInfer(newGraph, pair.left.id, pair.right.id);
-  });
+  // Optimization: Only filter if we've inferred new relationships
+  // Check how many new edges were added by transitive closure
+  let totalEdges = 0;
+  newGraph.forEach(set => totalEdges += set.size);
+  
+  let oldTotalEdges = 0;
+  state.graph.forEach(set => oldTotalEdges += set.size);
+  
+  const hasNewInferences = totalEdges > oldTotalEdges + 1; // +1 for the direct edge we just added
+
+  // Filter remaining pairs only if we have new inferences
+  let newRemainingPairs = state.remainingPairs.slice(1);
+  
+  if (hasNewInferences) {
+    newRemainingPairs = newRemainingPairs.filter((pair) => {
+      return !canInfer(newGraph, pair.left.id, pair.right.id);
+    });
+  }
 
   // Check if we're done
   if (newRemainingPairs.length === 0) {
@@ -173,8 +199,31 @@ function handleComparison(
     };
   }
 
-  // Get next pair
-  const nextPair = newRemainingPairs[0];
+  // Get next pair - skip if already inferred
+  let nextPairIndex = 0;
+  while (nextPairIndex < newRemainingPairs.length) {
+    const pair = newRemainingPairs[nextPairIndex];
+    if (!canInfer(newGraph, pair.left.id, pair.right.id)) {
+      break;
+    }
+    nextPairIndex++;
+  }
+  
+  if (nextPairIndex >= newRemainingPairs.length) {
+    // All remaining pairs can be inferred
+    const ranking = buildFinalRanking(state.allEntities, newGraph);
+    return {
+      ...state,
+      graph: newGraph,
+      remainingPairs: [],
+      ranking,
+      leftEntity: null,
+      rightEntity: null,
+      isFinished: true
+    };
+  }
+
+  const nextPair = newRemainingPairs[nextPairIndex];
 
   return {
     ...state,
