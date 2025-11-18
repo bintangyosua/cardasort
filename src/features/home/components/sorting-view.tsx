@@ -160,9 +160,9 @@ export function SortingView({ sorterState: initialState }: SortingViewProps) {
       </Card>
 
       {/* Duel UI */}
-      <div className='grid grid-cols-1 items-center gap-4 md:grid-cols-3'>
-        {/* Left Entity */}
-        <Card className='md:col-span-1'>
+      <div className='flex flex-col items-stretch gap-4 lg:grid lg:grid-cols-3 lg:items-center'>
+        {/* Left/Top Entity */}
+        <Card className='w-full lg:col-span-1'>
           <CardHeader>
             <CardTitle className='text-muted-foreground text-center text-sm'>
               Option A
@@ -194,20 +194,37 @@ export function SortingView({ sorterState: initialState }: SortingViewProps) {
         </Card>
 
         {/* Center: Action Buttons */}
-        <div className='flex items-center justify-center gap-3 p-4'>
-          <Button size='lg' variant='default' onClick={onLeft}>
-            ← Left
+        <div className='flex w-full flex-col items-center justify-center gap-3 p-4 lg:flex-row'>
+          <Button
+            size='lg'
+            variant='default'
+            onClick={onLeft}
+            className='w-full lg:w-auto'
+          >
+            <span className='lg:hidden'>↑ Top</span>
+            <span className='hidden lg:inline'>← Left</span>
           </Button>
-          <Button size='lg' variant='outline' onClick={onTie}>
+          <Button
+            size='lg'
+            variant='outline'
+            onClick={onTie}
+            className='w-full lg:w-auto'
+          >
             Tie
           </Button>
-          <Button size='lg' variant='secondary' onClick={onRight}>
-            Right →
+          <Button
+            size='lg'
+            variant='secondary'
+            onClick={onRight}
+            className='w-full lg:w-auto'
+          >
+            <span className='lg:hidden'>↓ Bottom</span>
+            <span className='hidden lg:inline'>Right →</span>
           </Button>
         </div>
 
-        {/* Right Entity */}
-        <Card className='md:col-span-1'>
+        {/* Right/Bottom Entity */}
+        <Card className='w-full lg:col-span-1'>
           <CardHeader>
             <CardTitle className='text-muted-foreground text-center text-sm'>
               Option B
