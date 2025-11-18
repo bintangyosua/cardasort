@@ -103,9 +103,12 @@ export function SortingView({ sorterState: initialState }: SortingViewProps) {
   }
 
   // Get the representative from current comparison group
+  // If no ranking yet, show the first entity from remaining as comparison
   const comparisonEntity =
     ranking.length > 0 && compareIndex < ranking.length
       ? ranking[compareIndex].members[0]
+      : remaining.length > 0
+      ? remaining[0]
       : null;
 
   return (
@@ -201,9 +204,9 @@ export function SortingView({ sorterState: initialState }: SortingViewProps) {
         <Card className='md:col-span-1'>
           <CardHeader>
             <CardTitle className='text-muted-foreground text-center text-sm'>
-              {comparisonEntity
+              {ranking.length > 0 && compareIndex < ranking.length
                 ? `Rank ${compareIndex + 1} Representative`
-                : 'First Entity'}
+                : 'Next Entity'}
             </CardTitle>
           </CardHeader>
           <CardContent className='space-y-4'>
@@ -240,9 +243,7 @@ export function SortingView({ sorterState: initialState }: SortingViewProps) {
             ) : (
               <div className='bg-muted flex aspect-square items-center justify-center rounded-lg'>
                 <p className='text-muted-foreground px-4 text-center text-sm'>
-                  This is the first entity.
-                  <br />
-                  Click Left to start ranking.
+                  No more entities to compare
                 </p>
               </div>
             )}
