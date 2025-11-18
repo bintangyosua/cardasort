@@ -1,6 +1,6 @@
+import { HomePageClient } from '@/features/home/components/home-page-client';
 import { EntityCategoriesServerService } from '@/lib/api/entities-categories.server.service';
 import { TagsServerService } from '@/lib/api/tags.server.service';
-import { HomePageClient } from '@/features/home/components/home-page-client';
 
 export default async function Page() {
   // Fetch categories and tags server-side
