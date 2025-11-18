@@ -62,6 +62,7 @@ export function SortingPageClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Load state from URL
   useEffect(() => {
@@ -140,11 +141,16 @@ export function SortingPageClient() {
     if (!state || isInitialLoad) return;
 
     const encoded = encodeStateToUrl(state);
-    router.replace(`/sort?state=${encoded}`, { scroll: false });
-
-    // If finished, redirect to results
+    
+    // If finished, show transition then redirect to results
     if (state.isFinished) {
-      router.replace(`/results?state=${encoded}`);
+      setIsTransitioning(true);
+      // Small delay for smooth transition
+      setTimeout(() => {
+        router.push(`/results?state=${encoded}`);
+      }, 300);
+    } else {
+      router.replace(`/sort?state=${encoded}`, { scroll: false });
     }
   }, [state, router, isInitialLoad]);
 
@@ -164,6 +170,21 @@ export function SortingPageClient() {
     return (
       <main className='flex min-h-screen items-center justify-center'>
         <div className='text-muted-foreground'>Loading...</div>
+      </main>
+    );
+  }
+
+  if (isTransitioning) {
+    return (
+      <main className='flex min-h-screen items-center justify-center'>
+        <div className='space-y-4 text-center'>
+          <div className='text-muted-foreground'>
+            Calculating results...
+          </div>
+          <div className='text-sm text-muted-foreground/60'>
+            Please wait
+          </div>
+        </div>
       </main>
     );
   }

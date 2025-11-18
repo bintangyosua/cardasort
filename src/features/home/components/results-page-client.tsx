@@ -104,7 +104,12 @@ export function ResultsPageClient() {
   if (isLoading) {
     return (
       <main className='flex min-h-screen items-center justify-center'>
-        <div className='text-muted-foreground'>Loading results...</div>
+        <div className='space-y-4 text-center'>
+          <div className='text-lg font-semibold'>Sorting Complete! 🎉</div>
+          <div className='text-muted-foreground'>
+            Preparing your results...
+          </div>
+        </div>
       </main>
     );
   }
