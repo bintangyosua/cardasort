@@ -69,7 +69,7 @@ export function SortingPageClient() {
   useEffect(() => {
     // Prevent re-loading if already loaded
     if (hasLoadedRef.current) return;
-    
+
     const loadState = async () => {
       const urlState = searchParams?.get('state');
 
