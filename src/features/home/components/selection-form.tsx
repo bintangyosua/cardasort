@@ -48,7 +48,7 @@ export function SelectionForm({ categories, tags }: SelectionFormProps) {
       <CardHeader>
         <CardTitle>Filter Selection</CardTitle>
         <CardDescription>
-          Pilih kategori dan tags yang ingin Anda gunakan
+          Select the categories and tags you want to use
         </CardDescription>
       </CardHeader>
       <CardContent className='space-y-6'>

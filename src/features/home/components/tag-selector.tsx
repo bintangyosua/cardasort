@@ -37,7 +37,7 @@ export function TagSelector({ tags, onTagsChange }: TagSelectorProps) {
 
   return (
     <div className='space-y-3'>
-      <Label>Pilih Tags</Label>
+      <Label>Select Tags</Label>
       <div className='flex flex-wrap gap-2'>
         {tags.map((tag) => (
           <Badge

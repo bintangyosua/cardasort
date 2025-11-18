@@ -38,10 +38,10 @@ export function CategorySelector({
 
   return (
     <div className='space-y-2'>
-      <Label htmlFor='category-select'>Pilih Kategori</Label>
+      <Label htmlFor='category-select'>Select Category</Label>
       <Select value={selectedCategoryId} onValueChange={handleValueChange}>
         <SelectTrigger id='category-select' className='w-full md:w-[300px]'>
-          <SelectValue placeholder='Pilih kategori' />
+          <SelectValue placeholder='Select a category' />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value='all'>All Categories</SelectItem>

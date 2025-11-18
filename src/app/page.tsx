@@ -18,7 +18,7 @@ export default async function Page() {
         <div className='space-y-2 text-center'>
           <h1 className='text-4xl font-bold tracking-tight'>CardaSort</h1>
           <p className='text-muted-foreground'>
-            Pilih kategori dan tags untuk memulai
+            Select categories and tags to get started
           </p>
         </div>
 
