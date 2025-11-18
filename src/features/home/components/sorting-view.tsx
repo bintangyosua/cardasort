@@ -13,8 +13,7 @@ interface SortingViewProps {
 export function SortingView({ sorterState: initialState }: SortingViewProps) {
   const [state, setState] = useState(initialState);
 
-  const { currentCandidate, remaining, ranking, compareIndex, isFinished } =
-    state;
+  const { leftEntity, rightEntity, ranking, isFinished, round, pairIndex, currentPairs, rankedEntities } = state;
 
   const onLeft = () => {
     setState(handleLeft(state));
@@ -28,7 +27,7 @@ export function SortingView({ sorterState: initialState }: SortingViewProps) {
     setState(handleRight(state));
   };
 
-  if (isFinished || !currentCandidate) {
+  if (isFinished || !leftEntity || !rightEntity) {
     return (
       <div className='w-full space-y-6'>
         <Card>
@@ -111,36 +110,23 @@ export function SortingView({ sorterState: initialState }: SortingViewProps) {
     );
   }
 
-  // Get the representative from current comparison group
-  // If no ranking yet, show the first entity from remaining as comparison
-  const comparisonEntity =
-    ranking.length > 0 && compareIndex < ranking.length
-      ? ranking[compareIndex].members[0]
-      : remaining.length > 0
-        ? remaining[0]
-        : null;
-
   return (
     <div className='w-full max-w-6xl space-y-6'>
       {/* Progress Info */}
       <Card>
         <CardContent className='pt-6'>
-          <div className='flex items-center justify-between'>
-            <div className='text-muted-foreground text-sm'>
-              Remaining:{' '}
-              <span className='font-semibold'>{remaining.length}</span>
+          <div className='flex items-center justify-between text-sm'>
+            <div className='text-muted-foreground'>
+              Round: <span className='font-semibold'>{round}</span>
             </div>
-            <div className='text-muted-foreground text-sm'>
-              Ranked Groups:{' '}
-              <span className='font-semibold'>{ranking.length}</span>
+            <div className='text-muted-foreground'>
+              Match: <span className='font-semibold'>{pairIndex + 1} / {currentPairs.length}</span>
             </div>
-            <div className='text-muted-foreground text-sm'>
-              Total Entities:{' '}
-              <span className='font-semibold'>
-                {remaining.length +
-                  ranking.reduce((sum, g) => sum + g.members.length, 0) +
-                  1}
-              </span>
+            <div className='text-muted-foreground'>
+              Ranked: <span className='font-semibold'>{rankedEntities.reduce((sum, group) => sum + group.length, 0)}</span>
+            </div>
+            <div className='text-muted-foreground'>
+              Remaining: <span className='font-semibold'>{state.currentBatch.length}</span>
             </div>
           </div>
         </CardContent>
@@ -148,28 +134,28 @@ export function SortingView({ sorterState: initialState }: SortingViewProps) {
 
       {/* Duel UI */}
       <div className='grid grid-cols-1 items-center gap-4 md:grid-cols-3'>
-        {/* Left: Current Candidate */}
+        {/* Left Entity */}
         <Card className='md:col-span-1'>
           <CardHeader>
             <CardTitle className='text-muted-foreground text-center text-sm'>
-              Current Candidate
+              Option A
             </CardTitle>
           </CardHeader>
           <CardContent className='space-y-4'>
-            {currentCandidate.imageUrl && (
+            {leftEntity.imageUrl && (
               <div className='bg-muted relative aspect-square overflow-hidden rounded-lg'>
                 <img
-                  src={currentCandidate.imageUrl}
-                  alt={currentCandidate.name}
+                  src={leftEntity.imageUrl}
+                  alt={leftEntity.name}
                   className='h-full w-full object-cover'
                 />
               </div>
             )}
             <div className='text-center'>
-              <h3 className='text-lg font-semibold'>{currentCandidate.name}</h3>
-              {currentCandidate.tags.length > 0 && (
+              <h3 className='text-lg font-semibold'>{leftEntity.name}</h3>
+              {leftEntity.tags.length > 0 && (
                 <div className='mt-2 flex flex-wrap justify-center gap-1'>
-                  {currentCandidate.tags.map((tag) => (
+                  {leftEntity.tags.map((tag) => (
                     <Badge key={tag.id} variant='secondary' className='text-xs'>
                       {tag.name}
                     </Badge>
@@ -185,12 +171,7 @@ export function SortingView({ sorterState: initialState }: SortingViewProps) {
           <Button size='lg' variant='default' onClick={onLeft}>
             ← Left
           </Button>
-          <Button
-            size='lg'
-            variant='outline'
-            onClick={onTie}
-            disabled={ranking.length === 0}
-          >
+          <Button size='lg' variant='outline' onClick={onTie}>
             Tie
           </Button>
           <Button size='lg' variant='secondary' onClick={onRight}>
@@ -198,53 +179,35 @@ export function SortingView({ sorterState: initialState }: SortingViewProps) {
           </Button>
         </div>
 
-        {/* Right: Comparison Entity */}
+        {/* Right Entity */}
         <Card className='md:col-span-1'>
           <CardHeader>
             <CardTitle className='text-muted-foreground text-center text-sm'>
-              {ranking.length > 0 && compareIndex < ranking.length
-                ? `Rank ${compareIndex + 1} Representative`
-                : 'Next Entity'}
+              Option B
             </CardTitle>
           </CardHeader>
           <CardContent className='space-y-4'>
-            {comparisonEntity ? (
-              <>
-                {comparisonEntity.imageUrl && (
-                  <div className='bg-muted relative aspect-square overflow-hidden rounded-lg'>
-                    <img
-                      src={comparisonEntity.imageUrl}
-                      alt={comparisonEntity.name}
-                      className='h-full w-full object-cover'
-                    />
-                  </div>
-                )}
-                <div className='text-center'>
-                  <h3 className='text-lg font-semibold'>
-                    {comparisonEntity.name}
-                  </h3>
-                  {comparisonEntity.tags.length > 0 && (
-                    <div className='mt-2 flex flex-wrap justify-center gap-1'>
-                      {comparisonEntity.tags.map((tag) => (
-                        <Badge
-                          key={tag.id}
-                          variant='secondary'
-                          className='text-xs'
-                        >
-                          {tag.name}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div className='bg-muted flex aspect-square items-center justify-center rounded-lg'>
-                <p className='text-muted-foreground px-4 text-center text-sm'>
-                  No more entities to compare
-                </p>
+            {rightEntity.imageUrl && (
+              <div className='bg-muted relative aspect-square overflow-hidden rounded-lg'>
+                <img
+                  src={rightEntity.imageUrl}
+                  alt={rightEntity.name}
+                  className='h-full w-full object-cover'
+                />
               </div>
             )}
+            <div className='text-center'>
+              <h3 className='text-lg font-semibold'>{rightEntity.name}</h3>
+              {rightEntity.tags.length > 0 && (
+                <div className='mt-2 flex flex-wrap justify-center gap-1'>
+                  {rightEntity.tags.map((tag) => (
+                    <Badge key={tag.id} variant='secondary' className='text-xs'>
+                      {tag.name}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>

@@ -12,12 +12,28 @@ export interface RankingGroup {
   members: Entity[];
 }
 
+export interface ComparisonPair {
+  left: Entity;
+  right: Entity;
+}
+
+export interface ComparisonResult {
+  winner: Entity;
+  loser: Entity;
+  isTie: boolean;
+}
+
 export interface SorterState {
-  pool: Entity[];
-  ranking: RankingGroup[];
-  currentCandidate: Entity | null;
-  remaining: Entity[];
-  compareIndex: number;
+  allEntities: Entity[]; // All entities being sorted
+  rankedEntities: Entity[][]; // Entities grouped by rank (index 0 = rank 1, etc)
+  currentBatch: Entity[]; // Current batch being sorted
+  currentPairs: ComparisonPair[]; // Current round of comparisons
+  comparisonResults: ComparisonResult[]; // Track all comparisons in current round
+  pairIndex: number; // Which pair we're comparing now
+  leftEntity: Entity | null;
+  rightEntity: Entity | null;
+  round: number; // Which round of comparison (1, 2, 3, etc)
+  ranking: RankingGroup[]; // Final ranking when finished
   started: boolean;
   isFinished: boolean;
 }
@@ -35,128 +51,190 @@ export function shuffleArray<T>(array: T[]): T[] {
 }
 
 /**
- * Initialize the sorter state
+ * Create pairs from an array of entities
+ */
+function createPairs(entities: Entity[]): ComparisonPair[] {
+  const pairs: ComparisonPair[] = [];
+  for (let i = 0; i < entities.length - 1; i += 2) {
+    pairs.push({
+      left: entities[i],
+      right: entities[i + 1]
+    });
+  }
+  return pairs;
+}
+
+/**
+ * Initialize the sorter state with merge sort paired comparison
  */
 export function initializeSorter(entities: Entity[]): SorterState {
   const shuffled = shuffleArray(entities);
 
+  if (shuffled.length < 2) {
+    return {
+      allEntities: shuffled,
+      rankedEntities: shuffled.length === 1 ? [[shuffled[0]]] : [],
+      currentBatch: [],
+      currentPairs: [],
+      comparisonResults: [],
+      pairIndex: 0,
+      ranking: shuffled.length === 1 ? [{ members: [shuffled[0]] }] : [],
+      leftEntity: null,
+      rightEntity: null,
+      round: 1,
+      started: true,
+      isFinished: true
+    };
+  }
+
+  const pairs = createPairs(shuffled);
+  const firstPair = pairs[0];
+
   return {
-    pool: shuffled,
+    allEntities: shuffled,
+    rankedEntities: [],
+    currentBatch: shuffled,
+    currentPairs: pairs,
+    comparisonResults: [],
+    pairIndex: 0,
+    leftEntity: firstPair.left,
+    rightEntity: firstPair.right,
+    round: 1,
     ranking: [],
-    currentCandidate: shuffled[0] || null,
-    remaining: shuffled.slice(1),
-    compareIndex: 0,
     started: true,
     isFinished: false
   };
 }
 
 /**
- * Get next candidate from remaining pool
+ * Move to next comparison or next round
+ * This implements a simple elimination tournament where:
+ * - Each comparison produces winners and losers
+ * - Winners get ranked higher
+ * - Losers continue to next round of comparisons
+ * - Process repeats until all entities are ranked
  */
-function getNextCandidate(state: SorterState): {
-  currentCandidate: Entity | null;
-  remaining: Entity[];
-  compareIndex: number;
-  isFinished: boolean;
-} {
-  if (state.remaining.length === 0) {
+function getNextState(
+  state: SorterState,
+  winner: Entity,
+  loser: Entity,
+  isTie: boolean
+): SorterState {
+  // Add current comparison result
+  const newComparisonResults: ComparisonResult[] = [
+    ...state.comparisonResults,
+    { winner, loser, isTie }
+  ];
+
+  const nextPairIndex = state.pairIndex + 1;
+
+  // Check if there's a next pair in current round
+  if (nextPairIndex < state.currentPairs.length) {
+    const nextPair = state.currentPairs[nextPairIndex];
     return {
-      currentCandidate: null,
-      remaining: [],
-      compareIndex: 0,
-      isFinished: true
+      ...state,
+      comparisonResults: newComparisonResults,
+      pairIndex: nextPairIndex,
+      leftEntity: nextPair.left,
+      rightEntity: nextPair.right
     };
   }
 
-  return {
-    currentCandidate: state.remaining[0],
-    remaining: state.remaining.slice(1),
-    compareIndex: 0,
-    isFinished: false
-  };
-}
+  // Current round finished - process all results
+  const totalProcessed = state.currentPairs.length * 2;
+  const oddEntity = totalProcessed < state.currentBatch.length 
+    ? state.currentBatch[totalProcessed] 
+    : null;
 
-/**
- * Handle "Left" button click - currentCandidate is better than current group
- */
-export function handleLeft(state: SorterState): SorterState {
-  if (!state.currentCandidate) return state;
+  // Separate entities based on comparison results
+  const winners: Entity[] = [];
+  const losers: Entity[] = [];
+  const ties: Entity[][] = [];
 
-  const newRanking = [...state.ranking];
-
-  // Insert new group above the current compareIndex
-  newRanking.splice(state.compareIndex, 0, {
-    members: [state.currentCandidate]
+  newComparisonResults.forEach(result => {
+    if (result.isTie) {
+      ties.push([result.winner, result.loser]);
+    } else {
+      winners.push(result.winner);
+      losers.push(result.loser);
+    }
   });
 
-  const next = getNextCandidate(state);
+  if (oddEntity) {
+    losers.push(oddEntity);
+  }
 
-  return {
-    ...state,
-    ranking: newRanking,
-    currentCandidate: next.currentCandidate,
-    remaining: next.remaining,
-    compareIndex: next.compareIndex,
-    isFinished: next.isFinished
-  };
-}
+  // Add current round results to ranking
+  const newRankedEntities = [...state.rankedEntities];
+  
+  // Winners from this round share the same rank
+  if (winners.length > 0) {
+    newRankedEntities.push(winners);
+  }
 
-/**
- * Handle "Tie" button click - currentCandidate has same rank as current group
- */
-export function handleTie(state: SorterState): SorterState {
-  if (!state.currentCandidate || state.ranking.length === 0) return state;
+  // Ties get their own ranks
+  ties.forEach(tieGroup => {
+    newRankedEntities.push(tieGroup);
+  });
 
-  const newRanking = [...state.ranking];
-
-  // Add currentCandidate to the current group
-  newRanking[state.compareIndex] = {
-    members: [...newRanking[state.compareIndex].members, state.currentCandidate]
-  };
-
-  const next = getNextCandidate(state);
-
-  return {
-    ...state,
-    ranking: newRanking,
-    currentCandidate: next.currentCandidate,
-    remaining: next.remaining,
-    compareIndex: next.compareIndex,
-    isFinished: next.isFinished
-  };
-}
-
-/**
- * Handle "Right" button click - currentCandidate is worse than current group
- */
-export function handleRight(state: SorterState): SorterState {
-  if (!state.currentCandidate) return state;
-
-  const isLastGroup = state.compareIndex >= state.ranking.length - 1;
-
-  if (isLastGroup) {
-    // Add new group at the bottom
-    const newRanking = [
-      ...state.ranking,
-      { members: [state.currentCandidate] }
-    ];
-
-    const next = getNextCandidate(state);
-
+  // Continue sorting losers if there are 2 or more
+  if (losers.length >= 2) {
+    const pairs = createPairs(losers);
+    const firstPair = pairs[0];
+    
     return {
       ...state,
-      ranking: newRanking,
-      currentCandidate: next.currentCandidate,
-      remaining: next.remaining,
-      compareIndex: next.compareIndex,
-      isFinished: next.isFinished
-    };
-  } else {
-    // Move to next group for comparison
-    return {
-      ...state,
-      compareIndex: state.compareIndex + 1
+      rankedEntities: newRankedEntities,
+      currentBatch: losers,
+      currentPairs: pairs,
+      comparisonResults: [],
+      pairIndex: 0,
+      leftEntity: firstPair.left,
+      rightEntity: firstPair.right,
+      round: state.round + 1
     };
   }
+
+  // Only 1 or 0 losers remain - we're done
+  if (losers.length === 1) {
+    newRankedEntities.push([losers[0]]);
+  }
+
+  // Build final ranking
+  const finalRanking: RankingGroup[] = newRankedEntities.map(group => ({
+    members: group
+  }));
+
+  return {
+    ...state,
+    rankedEntities: newRankedEntities,
+    ranking: finalRanking,
+    leftEntity: null,
+    rightEntity: null,
+    isFinished: true
+  };
+}
+
+/**
+ * Handle "Left" button click - left entity is better than right
+ */
+export function handleLeft(state: SorterState): SorterState {
+  if (!state.leftEntity || !state.rightEntity) return state;
+  return getNextState(state, state.leftEntity, state.rightEntity, false);
+}
+
+/**
+ * Handle "Tie" button click - both entities have same rank
+ */
+export function handleTie(state: SorterState): SorterState {
+  if (!state.leftEntity || !state.rightEntity) return state;
+  return getNextState(state, state.leftEntity, state.rightEntity, true);
+}
+
+/**
+ * Handle "Right" button click - right entity is better than left
+ */
+export function handleRight(state: SorterState): SorterState {
+  if (!state.leftEntity || !state.rightEntity) return state;
+  return getNextState(state, state.rightEntity, state.leftEntity, false);
 }
