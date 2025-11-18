@@ -30,38 +30,75 @@ export function SortingView({ sorterState: initialState }: SortingViewProps) {
 
   if (isFinished || !currentCandidate) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Sorting Complete!</CardTitle>
-        </CardHeader>
-        <CardContent className='space-y-4'>
-          <p className='text-muted-foreground'>
-            All entities have been sorted into {ranking.length} rank(s).
-          </p>
+      <div className='w-full space-y-6'>
+        <Card>
+          <CardHeader>
+            <CardTitle>Sorting Complete!</CardTitle>
+          </CardHeader>
+          <CardContent className='space-y-4'>
+            <p className='text-muted-foreground'>
+              All entities have been sorted into {ranking.length} rank(s).
+            </p>
 
-          {/* Display final ranking */}
-          <div className='space-y-3'>
-            {ranking.map((group, index) => (
-              <div key={index} className='rounded-lg border p-4'>
-                <div className='mb-2 flex items-center gap-2'>
-                  <Badge variant='secondary'>Rank {index + 1}</Badge>
-                  <span className='text-muted-foreground text-sm'>
-                    {group.members.length}{' '}
-                    {group.members.length === 1 ? 'entity' : 'entities'}
-                  </span>
-                </div>
-                <div className='flex flex-wrap gap-2'>
-                  {group.members.map((entity) => (
-                    <Badge key={entity.id} variant='outline'>
-                      {entity.name}
+            {/* Display final ranking */}
+            <div className='space-y-6'>
+              {ranking.map((group, index) => (
+                <div key={index} className='rounded-lg border p-4 space-y-4'>
+                  <div className='flex items-center gap-2'>
+                    <Badge variant='secondary' className='text-base px-3 py-1'>
+                      Rank {index + 1}
                     </Badge>
-                  ))}
+                    <span className='text-muted-foreground text-sm'>
+                      {group.members.length}{' '}
+                      {group.members.length === 1 ? 'entity' : 'entities'}
+                    </span>
+                  </div>
+                  
+                  {/* Grid of entities with images */}
+                  <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4'>
+                    {group.members.map((entity) => (
+                      <div key={entity.id} className='space-y-2'>
+                        {entity.imageUrl ? (
+                          <div className='aspect-square relative rounded-lg overflow-hidden bg-muted'>
+                            <img
+                              src={entity.imageUrl}
+                              alt={entity.name}
+                              className='object-cover w-full h-full'
+                            />
+                          </div>
+                        ) : (
+                          <div className='aspect-square bg-muted rounded-lg flex items-center justify-center'>
+                            <span className='text-muted-foreground text-xs'>No Image</span>
+                          </div>
+                        )}
+                        <div className='space-y-1'>
+                          <p className='text-sm font-medium text-center line-clamp-2'>
+                            {entity.name}
+                          </p>
+                          {entity.tags.length > 0 && (
+                            <div className='flex flex-wrap gap-1 justify-center'>
+                              {entity.tags.slice(0, 2).map((tag) => (
+                                <Badge key={tag.id} variant='outline' className='text-xs px-1.5 py-0'>
+                                  {tag.name}
+                                </Badge>
+                              ))}
+                              {entity.tags.length > 2 && (
+                                <Badge variant='outline' className='text-xs px-1.5 py-0'>
+                                  +{entity.tags.length - 2}
+                                </Badge>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
@@ -212,50 +249,6 @@ export function SortingView({ sorterState: initialState }: SortingViewProps) {
           </CardContent>
         </Card>
       </div>
-
-      {/* Current Ranking Display */}
-      {ranking.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className='text-sm'>Current Ranking</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className='space-y-2'>
-              {ranking.map((group, index) => (
-                <div
-                  key={index}
-                  className={`rounded-lg border p-3 ${
-                    index === compareIndex ? 'border-primary bg-primary/5' : ''
-                  }`}
-                >
-                  <div className='mb-1 flex items-center gap-2'>
-                    <Badge variant='secondary' className='text-xs'>
-                      Rank {index + 1}
-                    </Badge>
-                    {index === compareIndex && (
-                      <Badge variant='default' className='text-xs'>
-                        Comparing
-                      </Badge>
-                    )}
-                  </div>
-                  <div className='flex flex-wrap gap-1'>
-                    {group.members.map((entity) => (
-                      <span
-                        key={entity.id}
-                        className='text-muted-foreground text-sm'
-                      >
-                        {entity.name}
-                        {entity !== group.members[group.members.length - 1] &&
-                          ','}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

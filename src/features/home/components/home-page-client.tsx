@@ -18,8 +18,8 @@ export function HomePageClient({ categories, tags }: HomePageClientProps) {
   };
 
   return (
-    <main className='flex min-h-screen flex-col items-center p-8'>
-      <div className='w-full max-w-6xl space-y-8'>
+    <main className='flex flex-col items-center p-8'>
+      <div className='w-full max-w-6xl space-y-8 pb-16'>
         <div className='space-y-2 text-center'>
           <h1 className='text-4xl font-bold tracking-tight'>CardaSort</h1>
           <p className='text-muted-foreground'>
