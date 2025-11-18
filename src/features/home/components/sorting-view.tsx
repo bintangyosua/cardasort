@@ -43,9 +43,9 @@ export function SortingView({ sorterState: initialState }: SortingViewProps) {
             {/* Display final ranking */}
             <div className='space-y-6'>
               {ranking.map((group, index) => (
-                <div key={index} className='rounded-lg border p-4 space-y-4'>
+                <div key={index} className='space-y-4 rounded-lg border p-4'>
                   <div className='flex items-center gap-2'>
-                    <Badge variant='secondary' className='text-base px-3 py-1'>
+                    <Badge variant='secondary' className='px-3 py-1 text-base'>
                       Rank {index + 1}
                     </Badge>
                     <span className='text-muted-foreground text-sm'>
@@ -53,37 +53,46 @@ export function SortingView({ sorterState: initialState }: SortingViewProps) {
                       {group.members.length === 1 ? 'entity' : 'entities'}
                     </span>
                   </div>
-                  
+
                   {/* Grid of entities with images */}
-                  <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4'>
+                  <div className='grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'>
                     {group.members.map((entity) => (
                       <div key={entity.id} className='space-y-2'>
                         {entity.imageUrl ? (
-                          <div className='aspect-square relative rounded-lg overflow-hidden bg-muted'>
+                          <div className='bg-muted relative aspect-square overflow-hidden rounded-lg'>
                             <img
                               src={entity.imageUrl}
                               alt={entity.name}
-                              className='object-cover w-full h-full'
+                              className='h-full w-full object-cover'
                             />
                           </div>
                         ) : (
-                          <div className='aspect-square bg-muted rounded-lg flex items-center justify-center'>
-                            <span className='text-muted-foreground text-xs'>No Image</span>
+                          <div className='bg-muted flex aspect-square items-center justify-center rounded-lg'>
+                            <span className='text-muted-foreground text-xs'>
+                              No Image
+                            </span>
                           </div>
                         )}
                         <div className='space-y-1'>
-                          <p className='text-sm font-medium text-center line-clamp-2'>
+                          <p className='line-clamp-2 text-center text-sm font-medium'>
                             {entity.name}
                           </p>
                           {entity.tags.length > 0 && (
-                            <div className='flex flex-wrap gap-1 justify-center'>
+                            <div className='flex flex-wrap justify-center gap-1'>
                               {entity.tags.slice(0, 2).map((tag) => (
-                                <Badge key={tag.id} variant='outline' className='text-xs px-1.5 py-0'>
+                                <Badge
+                                  key={tag.id}
+                                  variant='outline'
+                                  className='px-1.5 py-0 text-xs'
+                                >
                                   {tag.name}
                                 </Badge>
                               ))}
                               {entity.tags.length > 2 && (
-                                <Badge variant='outline' className='text-xs px-1.5 py-0'>
+                                <Badge
+                                  variant='outline'
+                                  className='px-1.5 py-0 text-xs'
+                                >
                                   +{entity.tags.length - 2}
                                 </Badge>
                               )}
@@ -108,8 +117,8 @@ export function SortingView({ sorterState: initialState }: SortingViewProps) {
     ranking.length > 0 && compareIndex < ranking.length
       ? ranking[compareIndex].members[0]
       : remaining.length > 0
-      ? remaining[0]
-      : null;
+        ? remaining[0]
+        : null;
 
   return (
     <div className='w-full max-w-6xl space-y-6'>
@@ -172,31 +181,20 @@ export function SortingView({ sorterState: initialState }: SortingViewProps) {
         </Card>
 
         {/* Center: Action Buttons */}
-        <div className='flex flex-col items-center justify-center gap-3 p-4'>
-          <Button
-            size='lg'
-            variant='default'
-            className='w-full'
-            onClick={onLeft}
-          >
-            ← Left (Better)
+        <div className='flex items-center justify-center gap-3 p-4'>
+          <Button size='lg' variant='default' onClick={onLeft}>
+            ← Left
           </Button>
           <Button
             size='lg'
             variant='outline'
-            className='w-full'
             onClick={onTie}
             disabled={ranking.length === 0}
           >
-            = Tie (Same)
+            Tie
           </Button>
-          <Button
-            size='lg'
-            variant='secondary'
-            className='w-full'
-            onClick={onRight}
-          >
-            Right (Worse) →
+          <Button size='lg' variant='secondary' onClick={onRight}>
+            Right →
           </Button>
         </div>
 
