@@ -6,6 +6,9 @@ export const config = {
   NEXT_PUBLIC_AFTER_SIGN_IN_URL: process.env.NEXT_PUBLIC_AFTER_SIGN_IN_URL,
   ENABLE_AUTH: process.env.NEXT_PUBLIC_ENABLE_AUTH === 'true',
 
+  EMAIL: process.env.EMAIL,
+  PASSWORD: process.env.PASSWORD,
+
   NODE_ENV: process.env.NODE_ENV,
   USE_HTTPS: process.env.USE_HTTPS
 };

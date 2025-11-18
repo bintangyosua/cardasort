@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 
-const ENABLE_AUTH = process.env.NEXT_PUBLIC_ENABLE_AUTH === 'true';
-
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Check auth status from environment
+  const ENABLE_AUTH = process.env.NEXT_PUBLIC_ENABLE_AUTH === 'true';
 
   // If auth is disabled, allow all requests
   if (!ENABLE_AUTH) {
@@ -13,10 +14,18 @@ export async function middleware(request: NextRequest) {
 
   // Check if the path is under /dashboard
   if (pathname.startsWith('/dashboard')) {
-    const session = await getSession();
+    try {
+      const session = await getSession();
 
-    // If not logged in, redirect to sign-in page
-    if (!session?.isLoggedIn) {
+      // If not logged in, redirect to sign-in page
+      if (!session?.isLoggedIn) {
+        const signInUrl = new URL('/auth/sign-in', request.url);
+        signInUrl.searchParams.set('callbackUrl', pathname);
+        return NextResponse.redirect(signInUrl);
+      }
+    } catch (error) {
+      console.error('Session error in middleware:', error);
+      // If session check fails, redirect to sign-in
       const signInUrl = new URL('/auth/sign-in', request.url);
       signInUrl.searchParams.set('callbackUrl', pathname);
       return NextResponse.redirect(signInUrl);

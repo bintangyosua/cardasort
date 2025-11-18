@@ -280,7 +280,7 @@ export default function AppSidebar() {
                 <Icons.logo className='h-8 w-8' />
                 <div className='flex flex-col'>
                   <span className='text-sm font-semibold'>CardaSort</span>
-                  <span className='text-xs text-muted-foreground'>
+                  <span className='text-muted-foreground text-xs'>
                     No Auth Mode
                   </span>
                 </div>
