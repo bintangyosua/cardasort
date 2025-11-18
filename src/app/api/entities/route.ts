@@ -5,6 +5,24 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
+    const ids = searchParams.get('ids');
+    
+    // If IDs are provided, fetch specific entities
+    if (ids) {
+      const entityIds = ids.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+      
+      if (entityIds.length === 0) {
+        return NextResponse.json(
+          { success: false, error: 'Invalid entity IDs' },
+          { status: 400 }
+        );
+      }
+      
+      const result = await EntitiesServerService.getEntitiesByIds(entityIds);
+      return NextResponse.json(result);
+    }
+    
+    // Otherwise, use pagination
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const search = searchParams.get('search') || undefined;

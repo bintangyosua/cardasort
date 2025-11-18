@@ -31,6 +31,34 @@ export class EntitiesServerService {
     }
   }
 
+  static async getEntitiesByIds(ids: number[]) {
+    try {
+      const entities = await prisma.entity.findMany({
+        where: {
+          id: {
+            in: ids
+          }
+        },
+        include: {
+          category: true,
+          tags: true
+        }
+      });
+
+      return {
+        success: true,
+        data: entities
+      };
+    } catch (error) {
+      console.error('Error fetching entities by IDs:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch entities',
+        data: []
+      };
+    }
+  }
+
   static async getAdminEntities(filters: {
     page?: number;
     limit?: number;

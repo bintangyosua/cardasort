@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { CategorySelector } from './category-selector';
 import { TagSelector } from './tag-selector';
 import {
@@ -30,14 +31,10 @@ interface Tag {
 interface SelectionFormProps {
   categories: EntityCategory[];
   tags: Tag[];
-  onStartSorting?: (sorterState: SorterState) => void;
 }
 
-export function SelectionForm({
-  categories,
-  tags,
-  onStartSorting
-}: SelectionFormProps) {
+export function SelectionForm({ categories, tags }: SelectionFormProps) {
+  const router = useRouter();
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
     null
   );
@@ -115,10 +112,21 @@ export function SelectionForm({
         // Initialize sorter
         const sorterState = initializeSorter(entities);
 
-        // Callback to parent or navigate to sorting page
-        if (onStartSorting) {
-          onStartSorting(sorterState);
-        }
+        // Encode state and navigate to /sort
+        const compressed = {
+          g: Array.from(sorterState.graph.entries()).map(([k, v]) => [
+            k,
+            Array.from(v)
+          ]),
+          r: sorterState.round,
+          rp: sorterState.remainingPairs.map((p) => [p.left.id, p.right.id]),
+          l: sorterState.leftEntity?.id,
+          ri: sorterState.rightEntity?.id,
+          f: sorterState.isFinished,
+          e: sorterState.allEntities.map((e) => e.id)
+        };
+        const encoded = btoa(JSON.stringify(compressed));
+        router.push(`/sort?state=${encoded}`);
       } else {
         setError(response.data.error || 'Failed to fetch entities');
       }

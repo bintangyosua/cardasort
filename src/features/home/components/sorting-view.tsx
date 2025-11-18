@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   SorterState,
   handleLeft,
@@ -13,10 +14,83 @@ import { Badge } from '@/components/ui/badge';
 
 interface SortingViewProps {
   sorterState: SorterState;
+  onBack?: () => void;
 }
 
-export function SortingView({ sorterState: initialState }: SortingViewProps) {
-  const [state, setState] = useState(initialState);
+// Helper functions to encode/decode state to URL
+function encodeStateToUrl(state: SorterState): string {
+  const compressed = {
+    g: Array.from(state.graph.entries()).map(([k, v]) => [k, Array.from(v)]),
+    r: state.round,
+    rp: state.remainingPairs.map((p) => [p.left.id, p.right.id]),
+    l: state.leftEntity?.id,
+    ri: state.rightEntity?.id,
+    f: state.isFinished
+  };
+  return btoa(JSON.stringify(compressed));
+}
+
+function decodeStateFromUrl(
+  encoded: string,
+  allEntities: SorterState['allEntities']
+): Partial<SorterState> | null {
+  try {
+    const compressed = JSON.parse(atob(encoded));
+    const entityMap = new Map(allEntities.map((e) => [e.id, e]));
+
+    return {
+      graph: new Map(
+        compressed.g.map(([k, v]: [number, number[]]) => [k, new Set(v)])
+      ),
+      round: compressed.r,
+      remainingPairs: compressed.rp.map(([l, r]: [number, number]) => ({
+        left: entityMap.get(l)!,
+        right: entityMap.get(r)!
+      })),
+      leftEntity: compressed.l ? entityMap.get(compressed.l)! : null,
+      rightEntity: compressed.ri ? entityMap.get(compressed.ri)! : null,
+      isFinished: compressed.f
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function SortingView({
+  sorterState: initialState,
+  onBack
+}: SortingViewProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Try to restore state from URL on mount
+  const [state, setState] = useState<SorterState>(() => {
+    const urlState = searchParams?.get('state');
+    if (urlState) {
+      const decoded = decodeStateFromUrl(urlState, initialState.allEntities);
+      if (decoded) {
+        return { ...initialState, ...decoded };
+      }
+    }
+    return initialState;
+  });
+
+  // Update URL whenever state changes
+  useEffect(() => {
+    if (!state.started) return; // Don't update URL if not started
+
+    const encoded = encodeStateToUrl(state);
+    const params = new URLSearchParams(searchParams?.toString() || '');
+
+    if (state.isFinished) {
+      params.set('view', 'results');
+    } else {
+      params.set('view', 'sorting');
+    }
+    params.set('state', encoded);
+
+    router.replace(`?${params.toString()}`, { scroll: false });
+  }, [state, router, searchParams]);
 
   const {
     leftEntity,
@@ -45,8 +119,13 @@ export function SortingView({ sorterState: initialState }: SortingViewProps) {
     return (
       <div className='w-full space-y-6'>
         <Card>
-          <CardHeader>
+          <CardHeader className='flex flex-row items-center justify-between'>
             <CardTitle>Sorting Complete!</CardTitle>
+            {onBack && (
+              <Button variant='outline' onClick={onBack}>
+                ← New Sort
+              </Button>
+            )}
           </CardHeader>
           <CardContent className='space-y-4'>
             <p className='text-muted-foreground'>
