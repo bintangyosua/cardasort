@@ -11,7 +11,10 @@ import {
   CardTitle
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import axios from '@/lib/axios';
+import { Entity, initializeSorter, SorterState } from '../lib/sorter';
 
 interface EntityCategory {
   id: number;
@@ -27,15 +30,22 @@ interface Tag {
 interface SelectionFormProps {
   categories: EntityCategory[];
   tags: Tag[];
+  onStartSorting?: (sorterState: SorterState) => void;
 }
 
-export function SelectionForm({ categories, tags }: SelectionFormProps) {
+export function SelectionForm({
+  categories,
+  tags,
+  onStartSorting
+}: SelectionFormProps) {
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
     null
   );
   const [selectedTagNames, setSelectedTagNames] = useState<string[]>([]);
   const [entityCount, setEntityCount] = useState<number | null>(null);
   const [isLoadingCount, setIsLoadingCount] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch entity count whenever filters change
   useEffect(() => {
@@ -75,6 +85,54 @@ export function SelectionForm({ categories, tags }: SelectionFormProps) {
     console.log('Selected tags:', tagNames);
   };
 
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const params: any = {};
+      if (selectedCategoryId) {
+        params.categoryId = selectedCategoryId;
+      }
+      if (selectedTagNames.length > 0) {
+        params.tagNames = selectedTagNames.join(',');
+      }
+
+      const response = await axios.get<{
+        success: boolean;
+        data: Entity[];
+        error?: string;
+      }>('/entities/filter', { params });
+
+      if (response.data.success) {
+        const entities = response.data.data;
+
+        if (entities.length === 0) {
+          setError('No entities found for this filter');
+          return;
+        }
+
+        // Initialize sorter
+        const sorterState = initializeSorter(entities);
+
+        // Callback to parent or navigate to sorting page
+        if (onStartSorting) {
+          onStartSorting(sorterState);
+        }
+      } else {
+        setError(response.data.error || 'Failed to fetch entities');
+      }
+    } catch (error) {
+      console.error('Error starting sort:', error);
+      setError('Failed to start sorting. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const isSubmitDisabled =
+    entityCount === null || entityCount === 0 || isLoadingCount || isSubmitting;
+
   return (
     <Card>
       <CardHeader>
@@ -105,6 +163,23 @@ export function SelectionForm({ categories, tags }: SelectionFormProps) {
             {isLoadingCount ? '...' : entityCount !== null ? entityCount : '0'}
           </Badge>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <Alert variant='destructive'>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {/* Submit Button */}
+        <Button
+          className='w-full'
+          size='lg'
+          onClick={handleSubmit}
+          disabled={isSubmitDisabled}
+        >
+          {isSubmitting ? 'Loading...' : 'Start Sorting'}
+        </Button>
       </CardContent>
     </Card>
   );

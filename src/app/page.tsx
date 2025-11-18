@@ -1,6 +1,6 @@
 import { EntityCategoriesServerService } from '@/lib/api/entities-categories.server.service';
 import { TagsServerService } from '@/lib/api/tags.server.service';
-import { SelectionForm } from '@/features/home/components/selection-form';
+import { HomePageClient } from '@/features/home/components/home-page-client';
 
 export default async function Page() {
   // Fetch categories and tags server-side
@@ -12,18 +12,5 @@ export default async function Page() {
   const categories = categoriesResult.success ? categoriesResult.data : [];
   const tags = tagsResult.success ? tagsResult.data : [];
 
-  return (
-    <main className='flex min-h-screen flex-col items-center p-8'>
-      <div className='w-full max-w-4xl space-y-8'>
-        <div className='space-y-2 text-center'>
-          <h1 className='text-4xl font-bold tracking-tight'>CardaSort</h1>
-          <p className='text-muted-foreground'>
-            Select categories and tags to get started
-          </p>
-        </div>
-
-        <SelectionForm categories={categories} tags={tags} />
-      </div>
-    </main>
-  );
+  return <HomePageClient categories={categories} tags={tags} />;
 }
