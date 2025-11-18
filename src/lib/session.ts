@@ -26,7 +26,9 @@ const useHTTPS = config.USE_HTTPS === 'true';
 const isVPSWithHTTP = isProduction && !useHTTPS;
 
 export const sessionOptions: SessionOptions = {
-  password: config.SESSION_SECRET || 'complex_password_at_least_32_characters_long_for_security_purposes',
+  password:
+    config.SESSION_SECRET ||
+    'complex_password_at_least_32_characters_long_for_security_purposes',
   cookieName: 'cardasort-session',
   cookieOptions: {
     // Hanya secure jika production dan menggunakan HTTPS

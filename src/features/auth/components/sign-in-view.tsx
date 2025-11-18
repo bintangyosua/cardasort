@@ -25,7 +25,7 @@ export default function SignInViewPage() {
         </Link>
       </div>
       <div className='bg-muted text-foreground relative hidden h-full flex-col border-r p-10 lg:flex'>
-        <div className='from-primary/10 to-primary/5 absolute inset-0 bg-gradient-to-br' />
+        <div className='from-primary/10 to-primary/5 absolute inset-0 bg-linear-to-br' />
         <div className='text-primary relative z-20 flex items-center text-lg font-medium'>
           <svg
             xmlns='http://www.w3.org/2000/svg'

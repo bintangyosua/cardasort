@@ -60,12 +60,12 @@ export default function UserAuthForm() {
         const response = await fetch('/api/auth/login', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({
             email: data.email,
-            password: data.password,
-          }),
+            password: data.password
+          })
         });
 
         const result = await response.json();

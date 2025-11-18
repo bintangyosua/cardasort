@@ -71,7 +71,7 @@ function applyIncrementalTransitiveClosure(
       // Also add everything loser beats
       const loserBeats = graph.get(loser);
       if (loserBeats) {
-        Array.from(loserBeats).forEach(id => beats.add(id));
+        Array.from(loserBeats).forEach((id) => beats.add(id));
       }
     }
   });
@@ -80,7 +80,7 @@ function applyIncrementalTransitiveClosure(
   const winnerBeats = graph.get(winner);
   const loserBeats = graph.get(loser);
   if (winnerBeats && loserBeats) {
-    Array.from(loserBeats).forEach(id => winnerBeats.add(id));
+    Array.from(loserBeats).forEach((id) => winnerBeats.add(id));
   }
 }
 
@@ -160,7 +160,7 @@ function handleComparison(
   newGraph.forEach((set, key) => {
     newGraph.set(key, new Set(set));
   });
-  
+
   newGraph.get(winner.id)?.add(loser.id);
 
   // Apply incremental transitive closure (more efficient than full Floyd-Warshall)
@@ -169,16 +169,16 @@ function handleComparison(
   // Optimization: Only filter if we've inferred new relationships
   // Check how many new edges were added by transitive closure
   let totalEdges = 0;
-  newGraph.forEach(set => totalEdges += set.size);
-  
+  newGraph.forEach((set) => (totalEdges += set.size));
+
   let oldTotalEdges = 0;
-  state.graph.forEach(set => oldTotalEdges += set.size);
-  
+  state.graph.forEach((set) => (oldTotalEdges += set.size));
+
   const hasNewInferences = totalEdges > oldTotalEdges + 1; // +1 for the direct edge we just added
 
   // Filter remaining pairs only if we have new inferences
   let newRemainingPairs = state.remainingPairs.slice(1);
-  
+
   if (hasNewInferences) {
     newRemainingPairs = newRemainingPairs.filter((pair) => {
       return !canInfer(newGraph, pair.left.id, pair.right.id);
@@ -208,7 +208,7 @@ function handleComparison(
     }
     nextPairIndex++;
   }
-  
+
   if (nextPairIndex >= newRemainingPairs.length) {
     // All remaining pairs can be inferred
     const ranking = buildFinalRanking(state.allEntities, newGraph);
