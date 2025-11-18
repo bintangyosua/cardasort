@@ -15,6 +15,11 @@ const baseConfig: NextConfig = {
       },
       {
         protocol: 'http',
+        hostname: 'www.impawards.com',
+        port: ''
+      },
+      {
+        protocol: 'http',
         hostname: 'localhost'
       },
       {
