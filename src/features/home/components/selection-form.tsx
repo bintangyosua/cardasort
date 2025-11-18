@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CategorySelector } from './category-selector';
 import { TagSelector } from './tag-selector';
 import {
@@ -10,6 +10,8 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import axios from '@/lib/axios';
 
 interface EntityCategory {
   id: number;
@@ -32,6 +34,36 @@ export function SelectionForm({ categories, tags }: SelectionFormProps) {
     null
   );
   const [selectedTagNames, setSelectedTagNames] = useState<string[]>([]);
+  const [entityCount, setEntityCount] = useState<number | null>(null);
+  const [isLoadingCount, setIsLoadingCount] = useState(false);
+
+  // Fetch entity count whenever filters change
+  useEffect(() => {
+    const fetchCount = async () => {
+      setIsLoadingCount(true);
+      try {
+        const params: any = {};
+        if (selectedCategoryId) {
+          params.categoryId = selectedCategoryId;
+        }
+        if (selectedTagNames.length > 0) {
+          params.tagNames = selectedTagNames.join(',');
+        }
+
+        const response = await axios.get('/entities/count', { params });
+
+        if (response.data.success) {
+          setEntityCount(response.data.count);
+        }
+      } catch (error) {
+        console.error('Error fetching count:', error);
+      } finally {
+        setIsLoadingCount(false);
+      }
+    };
+
+    fetchCount();
+  }, [selectedCategoryId, selectedTagNames]);
 
   const handleCategoryChange = (categoryId: number | null) => {
     setSelectedCategoryId(categoryId);
@@ -58,6 +90,21 @@ export function SelectionForm({ categories, tags }: SelectionFormProps) {
         />
 
         <TagSelector tags={tags} onTagsChange={handleTagsChange} />
+
+        {/* Entity Count Display */}
+        <div className='bg-muted/50 flex items-center justify-between rounded-lg border p-4'>
+          <div className='space-y-1'>
+            <p className='text-sm font-medium'>Entities to Sort</p>
+            <p className='text-muted-foreground text-xs'>
+              {selectedCategoryId === null && selectedTagNames.length === 0
+                ? 'Select filters to see count'
+                : 'Based on your current selection'}
+            </p>
+          </div>
+          <Badge variant='secondary' className='px-4 py-2 text-lg'>
+            {isLoadingCount ? '...' : entityCount !== null ? entityCount : '0'}
+          </Badge>
+        </div>
       </CardContent>
     </Card>
   );
