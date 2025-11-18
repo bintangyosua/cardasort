@@ -68,7 +68,7 @@ export function SortingPageClient() {
   useEffect(() => {
     const loadState = async () => {
       const urlState = searchParams?.get('state');
-      
+
       if (!urlState) {
         // No state, redirect to home
         router.replace('/');
@@ -87,13 +87,13 @@ export function SortingPageClient() {
 
         if (response.data.success) {
           const entities = response.data.data;
-          
+
           if (!entities || entities.length === 0) {
             setError('No entities found');
             setIsLoading(false);
             return;
           }
-          
+
           const decoded = decodeStateFromUrl(urlState, entities);
 
           if (!decoded) {
@@ -141,7 +141,7 @@ export function SortingPageClient() {
     if (!state || isInitialLoad) return;
 
     const encoded = encodeStateToUrl(state);
-    
+
     // If finished, show transition then redirect to results
     if (state.isFinished) {
       setIsTransitioning(true);
@@ -178,12 +178,8 @@ export function SortingPageClient() {
     return (
       <main className='flex min-h-screen items-center justify-center'>
         <div className='space-y-4 text-center'>
-          <div className='text-muted-foreground'>
-            Calculating results...
-          </div>
-          <div className='text-sm text-muted-foreground/60'>
-            Please wait
-          </div>
+          <div className='text-muted-foreground'>Calculating results...</div>
+          <div className='text-muted-foreground/60 text-sm'>Please wait</div>
         </div>
       </main>
     );

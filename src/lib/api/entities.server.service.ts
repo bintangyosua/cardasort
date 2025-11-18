@@ -53,7 +53,8 @@ export class EntitiesServerService {
       console.error('Error fetching entities by IDs:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch entities',
+        error:
+          error instanceof Error ? error.message : 'Failed to fetch entities',
         data: []
       };
     }

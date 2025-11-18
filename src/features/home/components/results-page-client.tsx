@@ -8,7 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import axios from '@/lib/axios';
 
-function decodeResultsFromUrl(encoded: string, allEntities: Entity[]): RankingGroup[] | null {
+function decodeResultsFromUrl(
+  encoded: string,
+  allEntities: Entity[]
+): RankingGroup[] | null {
   try {
     const compressed = JSON.parse(atob(encoded));
     const entityMap = new Map(allEntities.map((e) => [e.id, e]));
@@ -21,13 +24,13 @@ function decodeResultsFromUrl(encoded: string, allEntities: Entity[]): RankingGr
     // Calculate ranking from graph
     const ranking: RankingGroup[] = [];
     const processed = new Set<number>();
-    
+
     while (processed.size < allEntities.length) {
       const currentRank: Entity[] = [];
-      
+
       for (const entity of allEntities) {
         if (processed.has(entity.id)) continue;
-        
+
         // Check if entity is beaten by any unprocessed entity
         let isBeaten = false;
         for (const [beaterId, beaten] of Array.from(graph.entries())) {
@@ -36,14 +39,14 @@ function decodeResultsFromUrl(encoded: string, allEntities: Entity[]): RankingGr
             break;
           }
         }
-        
+
         if (!isBeaten) {
           currentRank.push(entity);
         }
       }
-      
+
       if (currentRank.length === 0) break;
-      
+
       ranking.push({ members: currentRank });
       currentRank.forEach((e) => processed.add(e.id));
     }
@@ -106,9 +109,7 @@ export function ResultsPageClient() {
       <main className='flex min-h-screen items-center justify-center'>
         <div className='space-y-4 text-center'>
           <div className='text-lg font-semibold'>Sorting Complete! 🎉</div>
-          <div className='text-muted-foreground'>
-            Preparing your results...
-          </div>
+          <div className='text-muted-foreground'>Preparing your results...</div>
         </div>
       </main>
     );
