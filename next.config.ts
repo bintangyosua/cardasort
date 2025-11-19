@@ -24,7 +24,7 @@ const baseConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: '*'
+        hostname: '**'
       }
     ]
   },
