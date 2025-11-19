@@ -22,11 +22,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { MultiSelect } from '@/components/multi-select';
+import { MultiSelectCreatable } from '@/components/multi-select-creatable';
 import { Entity } from '@/types/entity';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useState } from 'react';
 import { entitiesService } from '@/lib/api/entities.service';
+import axios from '@/lib/axios';
+import { toast } from 'sonner';
 
 export default function EntitiesForm({
   initialData,
@@ -44,6 +47,8 @@ export default function EntitiesForm({
     initialData?.imageUrl || ''
   );
   const [imageError, setImageError] = useState(false);
+  const [availableTags, setAvailableTags] = useState(tags);
+  const [isCreatingTag, setIsCreatingTag] = useState(false);
 
   const formSchema = z.object({
     name: z
@@ -94,6 +99,34 @@ export default function EntitiesForm({
       console.error('Error saving entity:', error);
     }
   }
+
+  const handleCreateTag = async (tagName: string) => {
+    if (isCreatingTag) return;
+
+    setIsCreatingTag(true);
+    try {
+      const response = await axios.post('/tags', { name: tagName });
+
+      if (response.data.success) {
+        const newTag = response.data.data;
+        setAvailableTags([...availableTags, newTag]);
+
+        // Auto-select the newly created tag
+        const currentTags = form.getValues('tags');
+        form.setValue('tags', [...currentTags, newTag.id]);
+
+        toast.success(`Tag "${tagName}" created successfully!`);
+        return newTag;
+      } else {
+        toast.error('Failed to create tag');
+      }
+    } catch (error) {
+      console.error('Error creating tag:', error);
+      toast.error('Failed to create tag');
+    } finally {
+      setIsCreatingTag(false);
+    }
+  };
 
   return (
     <Card className='w-full'>
@@ -194,8 +227,8 @@ export default function EntitiesForm({
                 <FormItem>
                   <FormLabel>Tags</FormLabel>
                   <FormControl>
-                    <MultiSelect
-                      options={tags.map((tag) => ({
+                    <MultiSelectCreatable
+                      options={availableTags.map((tag) => ({
                         value: String(tag.id),
                         label: tag.name
                       }))}
@@ -203,15 +236,14 @@ export default function EntitiesForm({
                       onValueChange={(values) =>
                         field.onChange(values.map(Number))
                       }
-                      placeholder='Choose tags...'
-                      searchable={true}
-                      hideSelectAll={false}
+                      placeholder='Choose or create tags...'
                       maxCount={5}
+                      onCreateOption={handleCreateTag}
                     />
                   </FormControl>
                   <FormMessage />
                   <p className='text-muted-foreground text-xs'>
-                    Select one or more tags for this entity
+                    Select one or more tags or create a new one
                   </p>
                 </FormItem>
               )}
