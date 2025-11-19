@@ -47,6 +47,7 @@ export function MultiSelectCreatable({
   const [selected, setSelected] = React.useState<string[]>(defaultValue);
   const [searchValue, setSearchValue] = React.useState('');
   const [isCreating, setIsCreating] = React.useState(false);
+  const inputRef = React.useRef<HTMLInputElement>(null);
 
   // Sync selected state when defaultValue changes (e.g., after creating a tag)
   React.useEffect(() => {
@@ -77,8 +78,12 @@ export function MultiSelectCreatable({
       const newOption = await onCreateOption(searchValue.trim());
       if (newOption) {
         // The parent will update the options list
-        // Just clear the search
+        // Clear the search and focus back to input
         setSearchValue('');
+        // Small delay to ensure DOM is updated
+        setTimeout(() => {
+          inputRef.current?.focus();
+        }, 100);
       }
     } finally {
       setIsCreating(false);
@@ -150,9 +155,16 @@ export function MultiSelectCreatable({
       <PopoverContent className='w-full p-0' align='start'>
         <Command shouldFilter={false}>
           <CommandInput
+            ref={inputRef}
             placeholder='Search or type to create...'
             value={searchValue}
             onValueChange={setSearchValue}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && showCreateOption) {
+                e.preventDefault();
+                handleCreateNew();
+              }
+            }}
           />
           <CommandList>
             <CommandEmpty className='py-0'>
@@ -167,7 +179,9 @@ export function MultiSelectCreatable({
                   {isCreating ? 'Creating...' : `Create "${searchValue}"`}
                 </Button>
               ) : (
-                <div className='py-6 text-center text-sm'>No results found.</div>
+                <div className='py-6 text-center text-sm'>
+                  No results found.
+                </div>
               )}
             </CommandEmpty>
             <CommandGroup>
