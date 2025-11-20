@@ -1,14 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Check } from 'lucide-react';
 
 interface EntityCategory {
   id: number;
@@ -25,33 +20,41 @@ export function CategorySelector({
   categories,
   onCategoryChange
 }: CategorySelectorProps) {
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
+    null
+  );
 
-  const handleValueChange = (value: string) => {
-    setSelectedCategoryId(value);
-    if (value === 'all') {
-      onCategoryChange(null);
-    } else {
-      onCategoryChange(parseInt(value));
-    }
+  const handleCategoryClick = (categoryId: number | null) => {
+    setSelectedCategoryId(categoryId);
+    onCategoryChange(categoryId);
   };
 
   return (
-    <div className='space-y-2'>
-      <Label htmlFor='category-select'>Select Category</Label>
-      <Select value={selectedCategoryId} onValueChange={handleValueChange}>
-        <SelectTrigger id='category-select' className='w-full md:w-[300px]'>
-          <SelectValue placeholder='Select a category' />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value='all'>All Categories</SelectItem>
-          {categories.map((category) => (
-            <SelectItem key={category.id} value={category.id.toString()}>
-              {category.label || category.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+    <div className='space-y-3'>
+      <Label>Select Category</Label>
+      <div className='flex flex-wrap gap-2'>
+        <Badge
+          variant={selectedCategoryId === null ? 'default' : 'outline'}
+          className='cursor-pointer px-4 py-2 text-sm transition-all hover:scale-105'
+          onClick={() => handleCategoryClick(null)}
+        >
+          {selectedCategoryId === null && <Check className='mr-1 h-3 w-3' />}
+          All Categories
+        </Badge>
+        {categories.map((category) => (
+          <Badge
+            key={category.id}
+            variant={selectedCategoryId === category.id ? 'default' : 'outline'}
+            className='cursor-pointer px-4 py-2 text-sm transition-all hover:scale-105'
+            onClick={() => handleCategoryClick(category.id)}
+          >
+            {selectedCategoryId === category.id && (
+              <Check className='mr-1 h-3 w-3' />
+            )}
+            {category.label || category.name}
+          </Badge>
+        ))}
+      </div>
     </div>
   );
 }
