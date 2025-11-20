@@ -77,7 +77,11 @@ export function MultiSelectCreatable({
     try {
       const newOption = await onCreateOption(searchValue.trim());
       if (newOption) {
-        // The parent will update the options list
+        // Auto-select the newly created tag
+        const newSelected = [...selected, String(newOption.id)];
+        setSelected(newSelected);
+        onValueChange(newSelected);
+
         // Clear the search and focus back to input
         setSearchValue('');
         // Small delay to ensure DOM is updated

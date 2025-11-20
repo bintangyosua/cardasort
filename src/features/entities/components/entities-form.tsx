@@ -19,7 +19,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { useFieldArray, useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { MultiSelect } from '@/components/multi-select';
 import { MultiSelectCreatable } from '@/components/multi-select-creatable';
@@ -30,6 +30,7 @@ import { useState } from 'react';
 import { entitiesService } from '@/lib/api/entities.service';
 import axios from '@/lib/axios';
 import { toast } from 'sonner';
+import { Plus, Trash2 } from 'lucide-react';
 
 export default function EntitiesForm({
   initialData,
@@ -43,14 +44,10 @@ export default function EntitiesForm({
   tags?: Array<{ id: number; name: string }>;
 }) {
   const router = useRouter();
-  const [imagePreview, setImagePreview] = useState<string>(
-    initialData?.imageUrl || ''
-  );
-  const [imageError, setImageError] = useState(false);
   const [availableTags, setAvailableTags] = useState(tags);
   const [isCreatingTag, setIsCreatingTag] = useState(false);
 
-  const formSchema = z.object({
+  const entitySchema = z.object({
     name: z
       .string()
       .min(3, {
@@ -69,34 +66,64 @@ export default function EntitiesForm({
       .url({ message: 'Please enter a valid URL.' })
   });
 
+  const formSchema = z.object({
+    entities: z
+      .array(entitySchema)
+      .min(1, { message: 'At least one entity is required' })
+  });
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    values: {
-      name: initialData?.name || '',
-      categoryId: initialData?.categoryId || 0,
-      tags: initialData?.tags?.map((tag) => tag.id) || [],
-      imageUrl: initialData?.imageUrl || ''
-    }
+    defaultValues: initialData
+      ? {
+          entities: [
+            {
+              name: initialData.name || '',
+              categoryId: initialData.categoryId || 0,
+              tags: initialData.tags?.map((tag) => tag.id) || [],
+              imageUrl: initialData.imageUrl || ''
+            }
+          ]
+        }
+      : {
+          entities: [
+            {
+              name: '',
+              categoryId: 0,
+              tags: [],
+              imageUrl: ''
+            }
+          ]
+        }
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'entities'
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const data = {
-      name: values.name,
-      categoryId: values.categoryId,
-      imageUrl: values.imageUrl,
-      tags: values.tags
-    };
-
     try {
       if (initialData?.id) {
+        // Update single entity
+        const data = values.entities[0];
         await entitiesService.update(initialData.id, data);
+        toast.success('Entity updated successfully!');
       } else {
-        await entitiesService.create(data);
+        // Bulk create
+        const promises = values.entities.map((entity) =>
+          entitiesService.create(entity)
+        );
+        await Promise.all(promises);
+        toast.success(
+          `${values.entities.length} entities created successfully!`
+        );
       }
       router.push('/dashboard/entities');
       router.refresh();
     } catch (error) {
-      console.error('Error saving entity:', error);
+      console.error('Error saving entities:', error);
+      toast.error('Failed to save entities');
     }
   }
 
@@ -111,10 +138,6 @@ export default function EntitiesForm({
         const newTag = response.data.data;
         setAvailableTags([...availableTags, newTag]);
 
-        // Auto-select the newly created tag
-        const currentTags = form.getValues('tags');
-        form.setValue('tags', [...currentTags, newTag.id]);
-
         toast.success(`Tag "${tagName}" created successfully!`);
         return newTag;
       } else {
@@ -128,6 +151,15 @@ export default function EntitiesForm({
     }
   };
 
+  const addNewEntity = () => {
+    append({
+      name: '',
+      categoryId: 0,
+      tags: [],
+      imageUrl: ''
+    });
+  };
+
   return (
     <Card className='w-full'>
       <CardHeader>
@@ -137,119 +169,163 @@ export default function EntitiesForm({
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
-            <FormField
-              control={form.control}
-              name='imageUrl'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Image URL</FormLabel>
-                  {imagePreview && (
-                    <div className='mb-4 flex justify-center'>
-                      <div className='bg-muted relative aspect-square w-full max-w-md overflow-hidden rounded-md border'>
-                        {!imageError ? (
-                          <Image
-                            src={imagePreview}
-                            alt='Preview'
-                            fill
-                            className='object-cover'
-                            onError={() => setImageError(true)}
-                          />
-                        ) : (
-                          <div className='text-muted-foreground flex h-full items-center justify-center'>
-                            <p className='text-sm'>
-                              Failed to load image. Please check the URL.
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
+            {fields.map((field, index) => (
+              <Card key={field.id} className='relative border-2'>
+                <CardContent>
+                  {!initialData && fields.length > 1 && (
+                    <Button
+                      type='button'
+                      variant='ghost'
+                      size='sm'
+                      className='absolute top-2 right-2'
+                      onClick={() => remove(index)}
+                    >
+                      <Trash2 className='text-destructive h-4 w-4' />
+                    </Button>
                   )}
-                  <FormControl>
-                    <Input
-                      placeholder='https://example.com/image.jpg'
-                      {...field}
-                      onChange={(e) => {
-                        field.onChange(e);
-                        setImagePreview(e.target.value);
-                        setImageError(false);
+                  <div className='space-y-6'>
+                    <FormField
+                      control={form.control}
+                      name={`entities.${index}.imageUrl`}
+                      render={({ field }) => {
+                        const [imagePreview, setImagePreview] = useState(
+                          field.value
+                        );
+                        const [imageError, setImageError] = useState(false);
+
+                        return (
+                          <FormItem>
+                            <FormLabel>Image URL</FormLabel>
+                            {imagePreview && (
+                              <div className='mb-4 flex justify-center'>
+                                <div className='bg-muted relative aspect-square w-full max-w-md overflow-hidden rounded-md border'>
+                                  {!imageError ? (
+                                    <Image
+                                      src={imagePreview}
+                                      alt='Preview'
+                                      fill
+                                      className='object-cover'
+                                      onError={() => setImageError(true)}
+                                    />
+                                  ) : (
+                                    <div className='text-muted-foreground flex h-full items-center justify-center'>
+                                      <p className='text-sm'>
+                                        Failed to load image. Please check the
+                                        URL.
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                            <FormControl>
+                              <Input
+                                placeholder='https://example.com/image.jpg'
+                                {...field}
+                                onChange={(e) => {
+                                  field.onChange(e);
+                                  setImagePreview(e.target.value);
+                                  setImageError(false);
+                                }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        );
                       }}
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='name'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder='Enter entity name' {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='categoryId'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category</FormLabel>
-                  <Select
-                    onValueChange={(value) => field.onChange(Number(value))}
-                    value={field.value > 0 ? String(field.value) : undefined}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder='Select category' />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat.id} value={String(cat.id)}>
-                          {cat.label || cat.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='tags'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tags</FormLabel>
-                  <FormControl>
-                    <MultiSelectCreatable
-                      options={availableTags.map((tag) => ({
-                        value: String(tag.id),
-                        label: tag.name
-                      }))}
-                      defaultValue={field.value.map(String)}
-                      onValueChange={(values) =>
-                        field.onChange(values.map(Number))
-                      }
-                      placeholder='Choose or create tags...'
-                      maxCount={5}
-                      onCreateOption={handleCreateTag}
+                    <FormField
+                      control={form.control}
+                      name={`entities.${index}.name`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder='Enter entity name' {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </FormControl>
-                  <FormMessage />
-                  <p className='text-muted-foreground text-xs'>
-                    Select one or more tags or create a new one
-                  </p>
-                </FormItem>
-              )}
-            />
+                    <FormField
+                      control={form.control}
+                      name={`entities.${index}.categoryId`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Category</FormLabel>
+                          <Select
+                            onValueChange={(value) =>
+                              field.onChange(Number(value))
+                            }
+                            value={
+                              field.value > 0 ? String(field.value) : undefined
+                            }
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder='Select category' />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {categories.map((cat) => (
+                                <SelectItem key={cat.id} value={String(cat.id)}>
+                                  {cat.label || cat.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`entities.${index}.tags`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tags</FormLabel>
+                          <FormControl>
+                            <MultiSelectCreatable
+                              options={availableTags.map((tag) => ({
+                                value: String(tag.id),
+                                label: tag.name
+                              }))}
+                              defaultValue={field.value.map(String)}
+                              onValueChange={(values) =>
+                                field.onChange(values.map(Number))
+                              }
+                              placeholder='Choose or create tags...'
+                              maxCount={5}
+                              onCreateOption={handleCreateTag}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                          <p className='text-muted-foreground text-xs'>
+                            Select one or more tags or create a new one
+                          </p>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            {!initialData && (
+              <Button
+                type='button'
+                variant='outline'
+                className='w-full'
+                onClick={addNewEntity}
+              >
+                <Plus className='mr-2 h-4 w-4' />
+                Add More Entity
+              </Button>
+            )}
             <Button type='submit' className='w-full'>
-              {initialData ? 'Update Entity' : 'Create Entity'}
+              {initialData
+                ? 'Update Entity'
+                : `Create ${fields.length} ${fields.length === 1 ? 'Entity' : 'Entities'}`}
             </Button>
           </form>
         </Form>
