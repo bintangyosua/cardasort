@@ -20,6 +20,7 @@ import { useReactTable } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
 import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { useNameAvailability } from '@/hooks/use-name-availability';
+import { useState } from 'react';
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -36,6 +37,15 @@ export default function EntityCategoriesForm({
   pageTitle: string;
 }) {
   const router = useRouter();
+  const [nameValue, setNameValue] = useState(initialData?.name || '');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { isChecking, isAvailable } = useNameAvailability({
+    endpoint: '/entity-categories/check-name',
+    name: nameValue,
+    excludeId: initialData?.id,
+    enabled: nameValue.length >= 2
+  });
 
   const defaultValues = {
     name: initialData?.name || '',
@@ -48,6 +58,9 @@ export default function EntityCategoriesForm({
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
     // Add data for new EntityCategories
     const categoryData = {
       ...values
@@ -67,8 +80,16 @@ export default function EntityCategoriesForm({
       router.push('/dashboard/entity-categories');
     } catch (error) {
       // You can add error handling here (toast notification, etc)
+    } finally {
+      setIsSubmitting(false);
     }
   }
+
+  const canSubmit =
+    !isSubmitting &&
+    nameValue.length >= 2 &&
+    !isChecking &&
+    (isAvailable === true || isAvailable === null);
 
   return (
     <Card className='w-full'>
@@ -84,13 +105,6 @@ export default function EntityCategoriesForm({
               control={form.control}
               name='name'
               render={({ field }) => {
-                const { isChecking, isAvailable } = useNameAvailability({
-                  endpoint: '/entity-categories/check-name',
-                  name: field.value,
-                  excludeId: initialData?.id,
-                  enabled: field.value.length >= 2
-                });
-
                 return (
                   <FormItem>
                     <FormLabel>Entity Category Name</FormLabel>
@@ -99,6 +113,10 @@ export default function EntityCategoriesForm({
                         <Input
                           placeholder='Enter entity category name (e.g., ACTRESS, ACTOR)'
                           {...field}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            setNameValue(e.target.value);
+                          }}
                           className={
                             isAvailable === false
                               ? 'border-destructive pr-10'
@@ -149,7 +167,10 @@ export default function EntityCategoriesForm({
                 </FormItem>
               )}
             />
-            <Button type='submit' className='w-full'>
+            <Button type='submit' className='w-full' disabled={!canSubmit}>
+              {isSubmitting && (
+                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+              )}
               {initialData
                 ? 'Update Entity Category'
                 : 'Create Entity Category'}

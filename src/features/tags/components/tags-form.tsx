@@ -19,6 +19,7 @@ import { Tag } from '@/types/entity';
 import { useRouter } from 'next/navigation';
 import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { useNameAvailability } from '@/hooks/use-name-availability';
+import { useState } from 'react';
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -34,6 +35,15 @@ export default function TagsForm({
   pageTitle: string;
 }) {
   const router = useRouter();
+  const [nameValue, setNameValue] = useState(initialData?.name || '');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { isChecking, isAvailable } = useNameAvailability({
+    endpoint: '/tags/check-name',
+    name: nameValue,
+    excludeId: initialData?.id,
+    enabled: nameValue.length >= 2
+  });
 
   const defaultValues = {
     name: initialData?.name || ''
@@ -45,6 +55,9 @@ export default function TagsForm({
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
     const tagData = {
       ...values
     };
@@ -60,8 +73,16 @@ export default function TagsForm({
       router.push('/dashboard/tags');
     } catch (error) {
       // Error handling is done in the service with toast
+    } finally {
+      setIsSubmitting(false);
     }
   }
+
+  const canSubmit =
+    !isSubmitting &&
+    nameValue.length >= 2 &&
+    !isChecking &&
+    (isAvailable === true || isAvailable === null);
 
   return (
     <Card className='w-full'>
@@ -77,13 +98,6 @@ export default function TagsForm({
               control={form.control}
               name='name'
               render={({ field }) => {
-                const { isChecking, isAvailable } = useNameAvailability({
-                  endpoint: '/tags/check-name',
-                  name: field.value,
-                  excludeId: initialData?.id,
-                  enabled: field.value.length >= 2
-                });
-
                 return (
                   <FormItem>
                     <FormLabel>Tag Name</FormLabel>
@@ -92,6 +106,10 @@ export default function TagsForm({
                         <Input
                           placeholder='Enter tag name (e.g., blonde, cute, ugly)'
                           {...field}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            setNameValue(e.target.value);
+                          }}
                           className={
                             isAvailable === false
                               ? 'border-destructive pr-10'
@@ -126,7 +144,10 @@ export default function TagsForm({
                 );
               }}
             />
-            <Button type='submit' className='w-full'>
+            <Button type='submit' className='w-full' disabled={!canSubmit}>
+              {isSubmitting && (
+                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+              )}
               {initialData ? 'Update Tag' : 'Create Tag'}
             </Button>
           </form>

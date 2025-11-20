@@ -26,7 +26,7 @@ import { MultiSelectCreatable } from '@/components/multi-select-creatable';
 import { Entity } from '@/types/entity';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { entitiesService } from '@/lib/api/entities.service';
 import axios from '@/lib/axios';
 import { toast } from 'sonner';
@@ -47,6 +47,10 @@ export default function EntitiesForm({
   const router = useRouter();
   const [availableTags, setAvailableTags] = useState(tags);
   const [isCreatingTag, setIsCreatingTag] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [entityNameStates, setEntityNameStates] = useState<
+    Record<number, { isChecking: boolean; isAvailable: boolean | null }>
+  >({});
 
   const entitySchema = z.object({
     name: z
@@ -104,6 +108,9 @@ export default function EntitiesForm({
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
     try {
       if (initialData?.id) {
         // Update single entity
@@ -125,6 +132,8 @@ export default function EntitiesForm({
     } catch (error) {
       console.error('Error saving entities:', error);
       toast.error('Failed to save entities');
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -160,6 +169,16 @@ export default function EntitiesForm({
       imageUrl: ''
     });
   };
+
+  // Check if all entities have valid names
+  const canSubmit =
+    !isSubmitting &&
+    Object.values(entityNameStates).every(
+      (state) =>
+        !state.isChecking &&
+        (state.isAvailable === true || state.isAvailable === null)
+    ) &&
+    fields.length > 0;
 
   return (
     <Card className='w-full'>
@@ -248,6 +267,14 @@ export default function EntitiesForm({
                             enabled: field.value.length >= 3
                           }
                         );
+
+                        // Update state for this entity
+                        useEffect(() => {
+                          setEntityNameStates((prev) => ({
+                            ...prev,
+                            [index]: { isChecking, isAvailable }
+                          }));
+                        }, [isChecking, isAvailable]);
 
                         return (
                           <FormItem>
@@ -365,7 +392,10 @@ export default function EntitiesForm({
                 Add More Entity
               </Button>
             )}
-            <Button type='submit' className='w-full'>
+            <Button type='submit' className='w-full' disabled={!canSubmit}>
+              {isSubmitting && (
+                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+              )}
               {initialData
                 ? 'Update Entity'
                 : `Create ${fields.length} ${fields.length === 1 ? 'Entity' : 'Entities'}`}
