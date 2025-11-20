@@ -61,6 +61,12 @@ export class TagsServerService {
             const { id, desc } = sortParams[0];
             if (id === 'name') {
               orderBy = { name: desc ? 'desc' : 'asc' };
+            } else if (id === 'entities') {
+              orderBy = {
+                entities: {
+                  _count: desc ? 'desc' : 'asc'
+                }
+              };
             }
           }
         } catch (e) {

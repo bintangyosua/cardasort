@@ -30,7 +30,7 @@ export const columns: ColumnDef<TagWithCount>[] = [
   },
   {
     id: 'entities',
-    accessorKey: '_count.entities',
+    accessorFn: (row) => row._count?.entities ?? 0,
     header: ({ column }: { column: Column<TagWithCount, unknown> }) => (
       <DataTableColumnHeader column={column} title='Entities' />
     ),
@@ -38,7 +38,7 @@ export const columns: ColumnDef<TagWithCount>[] = [
       const count = row.original._count?.entities || 0;
       return <div>{count}</div>;
     },
-    enableSorting: false
+    enableSorting: true
   },
   {
     id: 'actions',

@@ -75,7 +75,7 @@ export class EntityCategoriesServerService {
             } else if (id === 'label') {
               orderBy = { label: desc ? 'desc' : 'asc' };
             } else if (id === 'entities') {
-              orderBy = { 
+              orderBy = {
                 entities: {
                   _count: desc ? 'desc' : 'asc'
                 }
