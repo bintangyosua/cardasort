@@ -66,12 +66,52 @@ export function SortingPageClient() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const hasLoadedRef = useRef(false);
 
-  // Load state from URL ONCE on mount
+  // Load state from sessionStorage or URL on mount
   useEffect(() => {
     // Prevent re-loading if already loaded
     if (hasLoadedRef.current) return;
 
     const loadState = async () => {
+      // Try sessionStorage first (new clean URL approach)
+      const sessionData = sessionStorage.getItem('sortingState');
+
+      if (sessionData) {
+        try {
+          const data = JSON.parse(sessionData);
+          const entities = data.allEntities;
+          const entityMap = new Map(entities.map((e: Entity) => [e.id, e]));
+
+          setState({
+            allEntities: entities,
+            graph: new Map(
+              data.graph.map(([k, v]: [number, number[]]) => [k, new Set(v)])
+            ),
+            remainingPairs: data.remainingPairs.map(
+              ([l, r]: [number, number]) => ({
+                left: entityMap.get(l)!,
+                right: entityMap.get(r)!
+              })
+            ),
+            leftEntity: data.leftEntity
+              ? (entityMap.get(data.leftEntity) as Entity | undefined) || null
+              : null,
+            rightEntity: data.rightEntity
+              ? (entityMap.get(data.rightEntity) as Entity | undefined) || null
+              : null,
+            round: data.round,
+            ranking: [],
+            started: true,
+            isFinished: false
+          });
+          setIsLoading(false);
+          hasLoadedRef.current = true;
+          return;
+        } catch (err) {
+          // If sessionStorage fails, try URL fallback
+        }
+      }
+
+      // Fallback to old URL-based approach
       const urlState = searchParams?.get('state');
 
       if (!urlState) {
@@ -141,23 +181,18 @@ export function SortingPageClient() {
     loadState();
   }, []); // Empty deps - only run once on mount
 
-  // Update URL when state changes
+  // Update URL only when finished - redirect to results
   useEffect(() => {
-    if (!state || !hasLoadedRef.current) return;
+    if (!state || !hasLoadedRef.current || !state.isFinished) return;
 
     const encoded = encodeStateToUrl(state);
 
-    // If finished, show transition then redirect to results
-    if (state.isFinished) {
-      setIsTransitioning(true);
-      // Small delay for smooth transition
-      setTimeout(() => {
-        router.push(`/results?state=${encoded}`);
-      }, 300);
-    } else {
-      router.replace(`/sort?state=${encoded}`, { scroll: false });
-    }
-  }, [state, router]);
+    setIsTransitioning(true);
+    // Small delay for smooth transition
+    setTimeout(() => {
+      router.push(`/results?state=${encoded}`);
+    }, 300);
+  }, [state?.isFinished, router]);
 
   const onLeft = () => {
     if (state) setState(handleLeft(state));

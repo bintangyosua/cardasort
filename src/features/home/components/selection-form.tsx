@@ -112,21 +112,27 @@ export function SelectionForm({ categories, tags }: SelectionFormProps) {
         // Initialize sorter
         const sorterState = initializeSorter(entities);
 
-        // Encode state and navigate to /sort
-        const compressed = {
-          g: Array.from(sorterState.graph.entries()).map(([k, v]) => [
-            k,
-            Array.from(v)
-          ]),
-          r: sorterState.round,
-          rp: sorterState.remainingPairs.map((p) => [p.left.id, p.right.id]),
-          l: sorterState.leftEntity?.id,
-          ri: sorterState.rightEntity?.id,
-          f: sorterState.isFinished,
-          e: sorterState.allEntities.map((e) => e.id)
-        };
-        const encoded = btoa(JSON.stringify(compressed));
-        router.push(`/sort?state=${encoded}`);
+        // Store state in sessionStorage instead of URL
+        sessionStorage.setItem(
+          'sortingState',
+          JSON.stringify({
+            graph: Array.from(sorterState.graph.entries()).map(([k, v]) => [
+              k,
+              Array.from(v)
+            ]),
+            round: sorterState.round,
+            remainingPairs: sorterState.remainingPairs.map((p) => [
+              p.left.id,
+              p.right.id
+            ]),
+            leftEntity: sorterState.leftEntity?.id,
+            rightEntity: sorterState.rightEntity?.id,
+            isFinished: sorterState.isFinished,
+            allEntities: sorterState.allEntities
+          })
+        );
+
+        router.push(`/sort`);
       } else {
         setError(response.data.error || 'Failed to fetch entities');
       }
