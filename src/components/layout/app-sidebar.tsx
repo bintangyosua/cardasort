@@ -50,13 +50,13 @@ import { OrgSwitcher } from '../org-switcher';
 import { UserAvatarProfile } from '../user-avatar-profile';
 
 export const company = {
-  name: 'Acme Inc',
+  name: 'Minuettaro',
   logo: IconPhotoUp,
   plan: 'Enterprise'
 };
 
 const tenants = [
-  { id: '1', name: 'Acme Inc' },
+  { id: '1', name: 'Minuettaro' },
   { id: '2', name: 'Beta Corp' },
   { id: '3', name: 'Gamma Ltd' }
 ];
