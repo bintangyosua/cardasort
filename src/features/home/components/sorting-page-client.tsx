@@ -181,11 +181,30 @@ export function SortingPageClient() {
     loadState();
   }, []); // Empty deps - only run once on mount
 
+  // Save state to sessionStorage whenever it changes
+  useEffect(() => {
+    if (!state || !hasLoadedRef.current) return;
+
+    // Save current progress to sessionStorage
+    sessionStorage.setItem('sortingState', JSON.stringify({
+      graph: Array.from(state.graph.entries()).map(([k, v]) => [k, Array.from(v)]),
+      round: state.round,
+      remainingPairs: state.remainingPairs.map((p) => [p.left.id, p.right.id]),
+      leftEntity: state.leftEntity?.id,
+      rightEntity: state.rightEntity?.id,
+      isFinished: state.isFinished,
+      allEntities: state.allEntities
+    }));
+  }, [state]);
+
   // Update URL only when finished - redirect to results
   useEffect(() => {
     if (!state || !hasLoadedRef.current || !state.isFinished) return;
 
     const encoded = encodeStateToUrl(state);
+
+    // Clear sessionStorage when moving to results
+    sessionStorage.removeItem('sortingState');
 
     setIsTransitioning(true);
     // Small delay for smooth transition
