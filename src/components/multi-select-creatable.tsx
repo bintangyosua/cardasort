@@ -160,7 +160,11 @@ export function MultiSelectCreatable({
             value={searchValue}
             onValueChange={setSearchValue}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && showCreateOption) {
+              if (
+                e.key === 'Enter' &&
+                showCreateOption &&
+                filteredOptions.length === 0
+              ) {
                 e.preventDefault();
                 handleCreateNew();
               }
