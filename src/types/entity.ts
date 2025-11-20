@@ -16,6 +16,9 @@ export type EntityCategory = {
   id: number;
   name: string;
   label?: string | null;
+  _count?: {
+    entities: number;
+  };
 };
 
 export type Entity = {

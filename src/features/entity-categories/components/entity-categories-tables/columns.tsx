@@ -34,6 +34,15 @@ export const columns: ColumnDef<EntityCategory>[] = [
     enableSorting: true
   },
   {
+    id: 'entities',
+    accessorKey: '_count.entities',
+    header: ({ column }: { column: Column<EntityCategory, unknown> }) => (
+      <DataTableColumnHeader column={column} title='Entities' />
+    ),
+    cell: ({ row }) => <div>{row.original._count?.entities ?? 0}</div>,
+    enableSorting: false
+  },
+  {
     id: 'actions',
     cell: ({ row }) => <CellAction data={row.original} />
   }
