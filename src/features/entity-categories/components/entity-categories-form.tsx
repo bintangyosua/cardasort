@@ -18,6 +18,8 @@ import { EntityCategory } from '@/types/entity';
 import { EntityCategoriesService } from '@/lib/api/entity-categories.service';
 import { useReactTable } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
+import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { useNameAvailability } from '@/hooks/use-name-availability';
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -81,18 +83,55 @@ export default function EntityCategoriesForm({
             <FormField
               control={form.control}
               name='name'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Entity Category Name</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder='Enter entity category name (e.g., ACTRESS, ACTOR)'
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const { isChecking, isAvailable } = useNameAvailability({
+                  endpoint: '/entity-categories/check-name',
+                  name: field.value,
+                  excludeId: initialData?.id,
+                  enabled: field.value.length >= 2
+                });
+
+                return (
+                  <FormItem>
+                    <FormLabel>Entity Category Name</FormLabel>
+                    <FormControl>
+                      <div className='relative'>
+                        <Input
+                          placeholder='Enter entity category name (e.g., ACTRESS, ACTOR)'
+                          {...field}
+                          className={
+                            isAvailable === false
+                              ? 'border-destructive pr-10'
+                              : isAvailable === true
+                                ? 'border-green-500 pr-10'
+                                : ''
+                          }
+                        />
+                        {isChecking && (
+                          <Loader2 className='text-muted-foreground absolute top-3 right-3 h-4 w-4 animate-spin' />
+                        )}
+                        {!isChecking && isAvailable === true && (
+                          <CheckCircle2 className='absolute top-3 right-3 h-4 w-4 text-green-500' />
+                        )}
+                        {!isChecking && isAvailable === false && (
+                          <XCircle className='text-destructive absolute top-3 right-3 h-4 w-4' />
+                        )}
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                    {!isChecking && isAvailable === false && (
+                      <p className='text-destructive text-sm'>
+                        This name is already taken
+                      </p>
+                    )}
+                    {!isChecking && isAvailable === true && (
+                      <p className='text-xs text-green-600'>
+                        This name is available
+                      </p>
+                    )}
+                  </FormItem>
+                );
+              }}
             />
             <FormField
               control={form.control}

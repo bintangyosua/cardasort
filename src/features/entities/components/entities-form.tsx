@@ -30,7 +30,8 @@ import { useState } from 'react';
 import { entitiesService } from '@/lib/api/entities.service';
 import axios from '@/lib/axios';
 import { toast } from 'sonner';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { useNameAvailability } from '@/hooks/use-name-availability';
 
 export default function EntitiesForm({
   initialData,
@@ -238,15 +239,57 @@ export default function EntitiesForm({
                     <FormField
                       control={form.control}
                       name={`entities.${index}.name`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder='Enter entity name' {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                      render={({ field }) => {
+                        const { isChecking, isAvailable } = useNameAvailability(
+                          {
+                            endpoint: '/entities/check-name',
+                            name: field.value,
+                            excludeId: initialData?.id,
+                            enabled: field.value.length >= 3
+                          }
+                        );
+
+                        return (
+                          <FormItem>
+                            <FormLabel>Name</FormLabel>
+                            <FormControl>
+                              <div className='relative'>
+                                <Input
+                                  placeholder='Enter entity name'
+                                  {...field}
+                                  className={
+                                    isAvailable === false
+                                      ? 'border-destructive pr-10'
+                                      : isAvailable === true
+                                        ? 'border-green-500 pr-10'
+                                        : ''
+                                  }
+                                />
+                                {isChecking && (
+                                  <Loader2 className='text-muted-foreground absolute top-3 right-3 h-4 w-4 animate-spin' />
+                                )}
+                                {!isChecking && isAvailable === true && (
+                                  <CheckCircle2 className='absolute top-3 right-3 h-4 w-4 text-green-500' />
+                                )}
+                                {!isChecking && isAvailable === false && (
+                                  <XCircle className='text-destructive absolute top-3 right-3 h-4 w-4' />
+                                )}
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                            {!isChecking && isAvailable === false && (
+                              <p className='text-destructive text-sm'>
+                                This name is already taken
+                              </p>
+                            )}
+                            {!isChecking && isAvailable === true && (
+                              <p className='text-xs text-green-600'>
+                                This name is available
+                              </p>
+                            )}
+                          </FormItem>
+                        );
+                      }}
                     />
                     <FormField
                       control={form.control}

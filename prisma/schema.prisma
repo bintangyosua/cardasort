@@ -20,11 +20,13 @@ model EntityCategory {
   label    String?          // contoh: "Actress", "Actor", "Cartoon" (optional buat display)
 
   entities Entity[]
+
+  @@index([name])
 }
 
 model Entity {
   id         Int             @id @default(autoincrement())
-  name       String
+  name       String          @unique
   imageUrl   String?
 
   // relasi ke category (wajib 1 kategori)
@@ -36,6 +38,8 @@ model Entity {
 
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+
+  @@index([name])
 }
 
 model Tag {
@@ -43,4 +47,6 @@ model Tag {
   name     String   @unique // "blonde", "cute", "ugly", dst
 
   entities Entity[]         // many-to-many balik ke Entity
+
+  @@index([name])
 }
