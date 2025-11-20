@@ -21,7 +21,6 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useFieldArray, useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { MultiSelect } from '@/components/multi-select';
 import { MultiSelectCreatable } from '@/components/multi-select-creatable';
 import { Entity } from '@/types/entity';
 import { useRouter } from 'next/navigation';
@@ -32,6 +31,228 @@ import axios from '@/lib/axios';
 import { toast } from 'sonner';
 import { Plus, Trash2, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { useNameAvailability } from '@/hooks/use-name-availability';
+
+// Separate field components to properly use hooks
+function ImageUrlField({ control, index }: { control: any; index: number }) {
+  const [imagePreview, setImagePreview] = useState('');
+  const [imageError, setImageError] = useState(false);
+
+  return (
+    <FormField
+      control={control}
+      name={`entities.${index}.imageUrl`}
+      render={({ field }) => {
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        useEffect(() => {
+          setImagePreview(field.value);
+          setImageError(false);
+        }, [field.value]);
+
+        return (
+          <FormItem>
+            <FormLabel>Image URL</FormLabel>
+            {imagePreview && (
+              <div className='mb-4 flex justify-center'>
+                <div className='bg-muted relative aspect-square w-full max-w-md overflow-hidden rounded-md border'>
+                  {!imageError ? (
+                    <Image
+                      src={imagePreview}
+                      alt='Preview'
+                      fill
+                      className='object-cover'
+                      onError={() => setImageError(true)}
+                    />
+                  ) : (
+                    <div className='text-muted-foreground flex h-full items-center justify-center'>
+                      <p className='text-sm'>
+                        Failed to load image. Please check the URL.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            <FormControl>
+              <Input
+                placeholder='https://example.com/image.jpg'
+                {...field}
+                onChange={(e) => {
+                  field.onChange(e);
+                  setImagePreview(e.target.value);
+                  setImageError(false);
+                }}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        );
+      }}
+    />
+  );
+}
+
+function NameField({
+  control,
+  index,
+  initialData,
+  onValidationChange
+}: {
+  control: any;
+  index: number;
+  initialData: Entity | null;
+  onValidationChange: (
+    index: number,
+    isChecking: boolean,
+    isAvailable: boolean | null
+  ) => void;
+}) {
+  return (
+    <FormField
+      control={control}
+      name={`entities.${index}.name`}
+      render={({ field }) => {
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        const { isChecking, isAvailable } = useNameAvailability({
+          endpoint: '/entities/check-name',
+          name: field.value,
+          excludeId: initialData?.id,
+          enabled: field.value.length >= 3
+        });
+
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        useEffect(() => {
+          onValidationChange(index, isChecking, isAvailable);
+        }, [isChecking, isAvailable]);
+
+        return (
+          <FormItem>
+            <FormLabel>Name</FormLabel>
+            <FormControl>
+              <div className='relative'>
+                <Input
+                  placeholder='Enter entity name'
+                  {...field}
+                  className={
+                    isAvailable === false
+                      ? 'border-destructive pr-10'
+                      : isAvailable === true
+                        ? 'border-green-500 pr-10'
+                        : ''
+                  }
+                />
+                {isChecking && (
+                  <Loader2 className='text-muted-foreground absolute top-3 right-3 h-4 w-4 animate-spin' />
+                )}
+                {!isChecking && isAvailable === true && (
+                  <CheckCircle2 className='absolute top-3 right-3 h-4 w-4 text-green-500' />
+                )}
+                {!isChecking && isAvailable === false && (
+                  <XCircle className='text-destructive absolute top-3 right-3 h-4 w-4' />
+                )}
+              </div>
+            </FormControl>
+            <FormMessage />
+            {!isChecking && isAvailable === false && (
+              <p className='text-destructive text-sm'>
+                This name is already taken
+              </p>
+            )}
+            {!isChecking && isAvailable === true && (
+              <p className='text-xs text-green-600'>This name is available</p>
+            )}
+          </FormItem>
+        );
+      }}
+    />
+  );
+}
+
+function EntityFieldSet({
+  index,
+  control,
+  initialData,
+  categories,
+  availableTags,
+  handleCreateTag,
+  onValidationChange
+}: {
+  index: number;
+  control: any;
+  initialData: Entity | null;
+  categories: Array<{ id: number; name: string; label?: string | null }>;
+  availableTags: Array<{ id: number; name: string }>;
+  handleCreateTag: (tagName: string) => Promise<any>;
+  onValidationChange: (
+    index: number,
+    isChecking: boolean,
+    isAvailable: boolean | null
+  ) => void;
+}) {
+  return (
+    <div className='space-y-6'>
+      <ImageUrlField control={control} index={index} />
+      <NameField
+        control={control}
+        index={index}
+        initialData={initialData}
+        onValidationChange={onValidationChange}
+      />
+      <FormField
+        control={control}
+        name={`entities.${index}.categoryId`}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Category</FormLabel>
+            <Select
+              onValueChange={(value) => field.onChange(Number(value))}
+              value={field.value > 0 ? String(field.value) : undefined}
+            >
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder='Select category' />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.id} value={String(cat.id)}>
+                    {cat.label || cat.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={control}
+        name={`entities.${index}.tags`}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Tags</FormLabel>
+            <FormControl>
+              <MultiSelectCreatable
+                options={availableTags.map((tag) => ({
+                  value: String(tag.id),
+                  label: tag.name
+                }))}
+                defaultValue={field.value.map(String)}
+                onValueChange={(values) => field.onChange(values.map(Number))}
+                placeholder='Choose or create tags...'
+                maxCount={5}
+                onCreateOption={handleCreateTag}
+              />
+            </FormControl>
+            <FormMessage />
+            <p className='text-muted-foreground text-xs'>
+              Select one or more tags or create a new one
+            </p>
+          </FormItem>
+        )}
+      />
+    </div>
+  );
+}
 
 export default function EntitiesForm({
   initialData,
@@ -130,7 +351,6 @@ export default function EntitiesForm({
       router.push('/dashboard/entities');
       router.refresh();
     } catch (error) {
-      console.error('Error saving entities:', error);
       toast.error('Failed to save entities');
     } finally {
       setIsSubmitting(false);
@@ -154,7 +374,6 @@ export default function EntitiesForm({
         toast.error('Failed to create tag');
       }
     } catch (error) {
-      console.error('Error creating tag:', error);
       toast.error('Failed to create tag');
     } finally {
       setIsCreatingTag(false);
@@ -204,180 +423,20 @@ export default function EntitiesForm({
                       <Trash2 className='text-destructive h-4 w-4' />
                     </Button>
                   )}
-                  <div className='space-y-6'>
-                    <FormField
-                      control={form.control}
-                      name={`entities.${index}.imageUrl`}
-                      render={({ field }) => {
-                        const [imagePreview, setImagePreview] = useState(
-                          field.value
-                        );
-                        const [imageError, setImageError] = useState(false);
-
-                        return (
-                          <FormItem>
-                            <FormLabel>Image URL</FormLabel>
-                            {imagePreview && (
-                              <div className='mb-4 flex justify-center'>
-                                <div className='bg-muted relative aspect-square w-full max-w-md overflow-hidden rounded-md border'>
-                                  {!imageError ? (
-                                    <Image
-                                      src={imagePreview}
-                                      alt='Preview'
-                                      fill
-                                      className='object-cover'
-                                      onError={() => setImageError(true)}
-                                    />
-                                  ) : (
-                                    <div className='text-muted-foreground flex h-full items-center justify-center'>
-                                      <p className='text-sm'>
-                                        Failed to load image. Please check the
-                                        URL.
-                                      </p>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-                            <FormControl>
-                              <Input
-                                placeholder='https://example.com/image.jpg'
-                                {...field}
-                                onChange={(e) => {
-                                  field.onChange(e);
-                                  setImagePreview(e.target.value);
-                                  setImageError(false);
-                                }}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        );
-                      }}
-                    />
-                    <FormField
-                      control={form.control}
-                      name={`entities.${index}.name`}
-                      render={({ field }) => {
-                        const { isChecking, isAvailable } = useNameAvailability(
-                          {
-                            endpoint: '/entities/check-name',
-                            name: field.value,
-                            excludeId: initialData?.id,
-                            enabled: field.value.length >= 3
-                          }
-                        );
-
-                        // Update state for this entity
-                        useEffect(() => {
-                          setEntityNameStates((prev) => ({
-                            ...prev,
-                            [index]: { isChecking, isAvailable }
-                          }));
-                        }, [isChecking, isAvailable]);
-
-                        return (
-                          <FormItem>
-                            <FormLabel>Name</FormLabel>
-                            <FormControl>
-                              <div className='relative'>
-                                <Input
-                                  placeholder='Enter entity name'
-                                  {...field}
-                                  className={
-                                    isAvailable === false
-                                      ? 'border-destructive pr-10'
-                                      : isAvailable === true
-                                        ? 'border-green-500 pr-10'
-                                        : ''
-                                  }
-                                />
-                                {isChecking && (
-                                  <Loader2 className='text-muted-foreground absolute top-3 right-3 h-4 w-4 animate-spin' />
-                                )}
-                                {!isChecking && isAvailable === true && (
-                                  <CheckCircle2 className='absolute top-3 right-3 h-4 w-4 text-green-500' />
-                                )}
-                                {!isChecking && isAvailable === false && (
-                                  <XCircle className='text-destructive absolute top-3 right-3 h-4 w-4' />
-                                )}
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                            {!isChecking && isAvailable === false && (
-                              <p className='text-destructive text-sm'>
-                                This name is already taken
-                              </p>
-                            )}
-                            {!isChecking && isAvailable === true && (
-                              <p className='text-xs text-green-600'>
-                                This name is available
-                              </p>
-                            )}
-                          </FormItem>
-                        );
-                      }}
-                    />
-                    <FormField
-                      control={form.control}
-                      name={`entities.${index}.categoryId`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Category</FormLabel>
-                          <Select
-                            onValueChange={(value) =>
-                              field.onChange(Number(value))
-                            }
-                            value={
-                              field.value > 0 ? String(field.value) : undefined
-                            }
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder='Select category' />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {categories.map((cat) => (
-                                <SelectItem key={cat.id} value={String(cat.id)}>
-                                  {cat.label || cat.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name={`entities.${index}.tags`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Tags</FormLabel>
-                          <FormControl>
-                            <MultiSelectCreatable
-                              options={availableTags.map((tag) => ({
-                                value: String(tag.id),
-                                label: tag.name
-                              }))}
-                              defaultValue={field.value.map(String)}
-                              onValueChange={(values) =>
-                                field.onChange(values.map(Number))
-                              }
-                              placeholder='Choose or create tags...'
-                              maxCount={5}
-                              onCreateOption={handleCreateTag}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                          <p className='text-muted-foreground text-xs'>
-                            Select one or more tags or create a new one
-                          </p>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  <EntityFieldSet
+                    index={index}
+                    control={form.control}
+                    initialData={initialData}
+                    categories={categories}
+                    availableTags={availableTags}
+                    handleCreateTag={handleCreateTag}
+                    onValidationChange={(idx, isChecking, isAvailable) => {
+                      setEntityNameStates((prev) => ({
+                        ...prev,
+                        [idx]: { isChecking, isAvailable }
+                      }));
+                    }}
+                  />
                 </CardContent>
               </Card>
             ))}
