@@ -12,8 +12,10 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import axios from '@/lib/axios';
 import Link from 'next/link';
+import { CheckCircle2, Circle, Loader2 } from 'lucide-react';
 
 // Helper functions to encode/decode state to URL
 function encodeStateToUrl(state: SorterState): string {
@@ -206,6 +208,15 @@ export function SortingPageClient() {
     return null;
   }
 
+  const totalPairs = (allEntities.length * (allEntities.length - 1)) / 2;
+  const completedPairs = totalPairs - remainingPairs.length;
+  const progressPercent = Math.round((completedPairs / totalPairs) * 100);
+
+  // Calculate estimated remaining time (assume ~3 seconds per comparison)
+  const estimatedSecondsRemaining = remainingPairs.length * 3;
+  const estimatedMinutes = Math.floor(estimatedSecondsRemaining / 60);
+  const estimatedSeconds = estimatedSecondsRemaining % 60;
+
   return (
     <main className='flex flex-col items-center p-8'>
       <div className='w-full max-w-6xl space-y-6'>
@@ -220,32 +231,64 @@ export function SortingPageClient() {
 
         {/* Progress Info */}
         <Card>
-          <CardContent className='pt-6'>
-            <div className='flex items-center justify-between text-sm'>
-              <div className='text-muted-foreground'>
-                Comparisons: <span className='font-semibold'>{round}</span>
-              </div>
-              <div className='text-muted-foreground'>
-                Remaining:{' '}
-                <span className='font-semibold'>{remainingPairs.length}</span>
-              </div>
-              <div className='text-muted-foreground'>
-                Total Pairs:{' '}
-                <span className='font-semibold'>
-                  {(allEntities.length * (allEntities.length - 1)) / 2}
+          <CardContent className='space-y-4'>
+            {/* Progress Bar */}
+            <div className='space-y-2'>
+              <div className='flex items-center justify-between text-sm'>
+                <span className='text-muted-foreground font-medium'>
+                  Overall Progress
+                </span>
+                <span className='text-primary font-bold'>
+                  {progressPercent}%
                 </span>
               </div>
-              <div className='text-muted-foreground'>
-                Progress:{' '}
-                <span className='font-semibold'>
-                  {Math.round(
-                    (1 -
-                      remainingPairs.length /
-                        ((allEntities.length * (allEntities.length - 1)) / 2)) *
-                      100
-                  )}
-                  %
-                </span>
+              <Progress value={progressPercent} className='h-3' />
+            </div>
+
+            {/* Stats Grid */}
+            <div className='grid grid-cols-2 gap-4 lg:grid-cols-4'>
+              <div className='space-y-1'>
+                <p className='text-muted-foreground text-xs'>Total Items</p>
+                <p className='text-2xl font-bold'>{allEntities.length}</p>
+              </div>
+              <div className='space-y-1'>
+                <p className='text-muted-foreground text-xs'>
+                  Comparisons Made
+                </p>
+                <p className='text-2xl font-bold text-green-600'>
+                  {completedPairs}
+                </p>
+              </div>
+              <div className='space-y-1'>
+                <p className='text-muted-foreground text-xs'>Remaining</p>
+                <p className='text-2xl font-bold text-orange-600'>
+                  {remainingPairs.length}
+                </p>
+              </div>
+              <div className='space-y-1'>
+                <p className='text-muted-foreground text-xs'>Est. Time Left</p>
+                <p className='text-2xl font-bold text-blue-600'>
+                  {estimatedMinutes > 0 ? `${estimatedMinutes}m ` : ''}
+                  {estimatedSeconds}s
+                </p>
+              </div>
+            </div>
+
+            {/* Visual Representation */}
+            <div className='space-y-2'>
+              <p className='text-muted-foreground text-xs font-medium'>
+                Comparison Status
+              </p>
+              <div className='flex flex-wrap gap-1'>
+                {Array.from({ length: totalPairs }).map((_, i) => (
+                  <div
+                    key={i}
+                    className={`h-2 w-2 rounded-full ${
+                      i < completedPairs ? 'bg-green-500' : 'bg-muted'
+                    }`}
+                    title={i < completedPairs ? 'Completed' : 'Pending'}
+                  />
+                ))}
               </div>
             </div>
           </CardContent>
