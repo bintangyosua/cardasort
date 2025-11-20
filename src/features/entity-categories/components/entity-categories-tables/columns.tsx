@@ -35,12 +35,12 @@ export const columns: ColumnDef<EntityCategory>[] = [
   },
   {
     id: 'entities',
-    accessorKey: '_count.entities',
+    accessorFn: (row) => row._count?.entities ?? 0,
     header: ({ column }: { column: Column<EntityCategory, unknown> }) => (
       <DataTableColumnHeader column={column} title='Entities' />
     ),
     cell: ({ row }) => <div>{row.original._count?.entities ?? 0}</div>,
-    enableSorting: false
+    enableSorting: true
   },
   {
     id: 'actions',
