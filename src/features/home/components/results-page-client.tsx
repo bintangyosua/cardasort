@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import axios from '@/lib/axios';
 import Link from 'next/link';
+import Image from 'next/image';
 
 function decodeResultsFromUrl(
   encoded: string,
@@ -168,15 +169,16 @@ export function ResultsPageClient() {
                     {group.members.map((entity) => (
                       <div key={entity.id} className='space-y-2'>
                         {entity.imageUrl ? (
-                          <div className='bg-muted relative aspect-square overflow-hidden rounded-lg'>
-                            <img
+                          <div className='bg-muted relative aspect-2/3 overflow-hidden rounded-lg'>
+                            <Image
                               src={entity.imageUrl}
                               alt={entity.name}
-                              className='h-full w-full object-cover'
+                              fill
+                              className='object-cover'
                             />
                           </div>
                         ) : (
-                          <div className='bg-muted flex aspect-square items-center justify-center rounded-lg'>
+                          <div className='bg-muted flex aspect-2/3 items-center justify-center rounded-lg'>
                             <span className='text-muted-foreground text-xs'>
                               No Image
                             </span>

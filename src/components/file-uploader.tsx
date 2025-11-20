@@ -277,9 +277,9 @@ function FileCard({ file, progress, onRemove }: FileCardProps) {
             src={file.preview}
             alt={file.name}
             width={48}
-            height={48}
+            height={72}
             loading='lazy'
-            className='aspect-square shrink-0 rounded-md object-cover'
+            className='aspect-[2/3] shrink-0 rounded-md object-cover'
           />
         ) : null}
         <div className='flex w-full flex-col gap-2'>

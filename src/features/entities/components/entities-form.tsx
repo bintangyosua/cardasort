@@ -53,7 +53,7 @@ function ImageUrlField({ control, index }: { control: any; index: number }) {
             <FormLabel>Image URL</FormLabel>
             {imagePreview && (
               <div className='mb-4 flex justify-center'>
-                <div className='bg-muted relative aspect-square w-full max-w-md overflow-hidden rounded-md border'>
+                <div className='bg-muted relative aspect-[2/3] w-full max-w-md overflow-hidden rounded-md border'>
                   {!imageError ? (
                     <Image
                       src={imagePreview}

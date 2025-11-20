@@ -41,7 +41,7 @@ export const createEntityColumnsFromConfig = (
       }
 
       return (
-        <div className='relative aspect-square overflow-hidden'>
+        <div className='relative aspect-[2/3] overflow-hidden'>
           <Image
             src={imageSrc}
             alt={row.getValue('name')}

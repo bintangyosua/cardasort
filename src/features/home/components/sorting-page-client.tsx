@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import axios from '@/lib/axios';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // Helper functions to encode/decode state to URL
 function encodeStateToUrl(state: SorterState): string {
@@ -358,11 +359,12 @@ export function SortingPageClient() {
             </CardHeader>
             <CardContent className='space-y-4'>
               {leftEntity.imageUrl && (
-                <div className='bg-muted relative aspect-square overflow-hidden rounded-lg'>
-                  <img
+                <div className='bg-muted relative aspect-2/3 overflow-hidden rounded-lg'>
+                  <Image
                     src={leftEntity.imageUrl}
                     alt={leftEntity.name}
-                    className='h-full w-full object-cover'
+                    fill
+                    className='object-cover'
                   />
                 </div>
               )}
@@ -424,11 +426,12 @@ export function SortingPageClient() {
             </CardHeader>
             <CardContent className='space-y-4'>
               {rightEntity.imageUrl && (
-                <div className='bg-muted relative aspect-square overflow-hidden rounded-lg'>
-                  <img
+                <div className='bg-muted relative aspect-2/3 overflow-hidden rounded-lg'>
+                  <Image
                     src={rightEntity.imageUrl}
                     alt={rightEntity.name}
-                    className='h-full w-full object-cover'
+                    fill
+                    className='object-cover'
                   />
                 </div>
               )}

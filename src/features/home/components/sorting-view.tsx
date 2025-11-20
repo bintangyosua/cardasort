@@ -11,6 +11,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import Image from 'next/image';
 
 interface SortingViewProps {
   sorterState: SorterState;
@@ -151,15 +152,16 @@ export function SortingView({
                     {group.members.map((entity) => (
                       <div key={entity.id} className='space-y-2'>
                         {entity.imageUrl ? (
-                          <div className='bg-muted relative aspect-square overflow-hidden rounded-lg'>
-                            <img
+                          <div className='bg-muted relative aspect-2/3 overflow-hidden rounded-lg'>
+                            <Image
                               src={entity.imageUrl}
                               alt={entity.name}
-                              className='h-full w-full object-cover'
+                              fill
+                              className='object-cover'
                             />
                           </div>
                         ) : (
-                          <div className='bg-muted flex aspect-square items-center justify-center rounded-lg'>
+                          <div className='bg-muted flex aspect-2/3 items-center justify-center rounded-lg'>
                             <span className='text-muted-foreground text-xs'>
                               No Image
                             </span>
@@ -249,11 +251,12 @@ export function SortingView({
           </CardHeader>
           <CardContent className='space-y-4'>
             {leftEntity.imageUrl && (
-              <div className='bg-muted relative aspect-square overflow-hidden rounded-lg'>
-                <img
+              <div className='bg-muted relative aspect-2/3 overflow-hidden rounded-lg'>
+                <Image
                   src={leftEntity.imageUrl}
                   alt={leftEntity.name}
-                  className='h-full w-full object-cover'
+                  fill
+                  className='object-cover'
                 />
               </div>
             )}
@@ -311,11 +314,12 @@ export function SortingView({
           </CardHeader>
           <CardContent className='space-y-4'>
             {rightEntity.imageUrl && (
-              <div className='bg-muted relative aspect-square overflow-hidden rounded-lg'>
-                <img
+              <div className='bg-muted relative aspect-2/3 overflow-hidden rounded-lg'>
+                <Image
                   src={rightEntity.imageUrl}
                   alt={rightEntity.name}
-                  className='h-full w-full object-cover'
+                  fill
+                  className='object-cover'
                 />
               </div>
             )}
