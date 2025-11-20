@@ -15,7 +15,6 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import axios from '@/lib/axios';
 import Link from 'next/link';
-import { CheckCircle2, Circle, Loader2 } from 'lucide-react';
 
 // Helper functions to encode/decode state to URL
 function encodeStateToUrl(state: SorterState): string {
